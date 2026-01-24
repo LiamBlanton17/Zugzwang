@@ -1,13 +1,14 @@
-package types
+package engine
 
 /*
 This package contains all the aliases and definitions for the types and constant values used by the chess engine.
-
-A few are also utilized by the backend application.
 */
 
 // Aliasing FEN to string for better type saftey
 type FEN string
+
+// Aliasing PGN to string for better type safety
+type PGN string
 
 // Aliasing Piece to uint8 for better type safety
 type Piece uint8
@@ -17,6 +18,15 @@ type Color uint8
 
 // Aliasing Eval to int32 for better type safety
 type Eval int32
+
+// Aliasing Move to uint32 for better type safety
+type Move uint32
+
+// Aliasing a Move, Eval pair
+type MoveEval struct {
+	move Move
+	eval Eval
+}
 
 // Aliasing Square to unit8 for better type safety
 // Uint8 has a max value of 256, enough to store all 64 possible squares in it
