@@ -5,6 +5,7 @@ This package contains all the aliases and definitions for the types and constant
 */
 
 // Aliasing FEN to string for better type saftey
+// The starting FEN position is: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 type FEN string
 
 // Aliasing PGN to string for better type safety

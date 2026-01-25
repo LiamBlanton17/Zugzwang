@@ -21,7 +21,7 @@ func Evalute(position FEN, history []FEN, numberOfMoves int) EvaluateResponse {
 	start := time.Now()
 
 	// Build the board from the position
-	board := buildBoard(position)
+	board := position.toBoard()
 
 	// Build the game history from the array of fens
 	gameHistory := buildGameHistory(history)

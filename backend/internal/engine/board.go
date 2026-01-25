@@ -4,12 +4,26 @@ package engine
 This file contains functionality related to setup, searching and evalution of a board.
 */
 
-func buildBoard(position FEN) *Board {
-	return nil
+func (f FEN) toZobrist() ZobristHash {
+
+}
+
+func (position FEN) toBoard() *Board {
+	board := Board{
+		Zobrist: position.toZobrist(),
+	}
+
+	return &board
 }
 
 func buildGameHistory(history []FEN) *GameHistory {
-	return nil
+	var gameHistory GameHistory
+
+	for _, h := range history {
+		gameHistory = append(gameHistory, h.toZobrist())
+	}
+
+	return &gameHistory
 }
 
 type BoardSearchResults struct {
@@ -19,4 +33,10 @@ type BoardSearchResults struct {
 
 func (b *Board) search(history *GameHistory, numberOfMoves int) BoardSearchResults {
 	return BoardSearchResults{}
+}
+
+func (b *Board) generateMoves() []Move {
+	var moves []Move
+
+	return moves
 }
