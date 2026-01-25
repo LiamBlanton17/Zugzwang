@@ -35,6 +35,10 @@ type Square uint8
 // Aliasing a Zobrist hash to uint64 for better type safety
 type ZobristHash uint8
 
+// Aliasing game history to an array of Zobrist hashs
+// This is the most effective way to use game history to check for repititions
+type GameHistory []ZobristHash
+
 // Aliasing BitBoard to uint64 for better type safety
 // Bitboards are 64 bits of 0s meaning no piece and 1s meaning a piece
 type BitBoard uint64
