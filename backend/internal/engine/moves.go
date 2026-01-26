@@ -37,18 +37,148 @@ a2 b2 c2 d2 e2 f2 g2 h2
 a1 b1 c1 d1 e1 f1 g1 h1
 */
 
+// Used by board.generateMoves() to get the pseudo-legal pawn moves
+// Does include captures
+// Does include promotion
+// Does include enpassent
+func getPawnMoves(pawns, enemyPieces, occupancy BitBoard, EPS Square, color Color, moves []Move, moveIdx int) int {
+
+	for pawns > 0 {
+		start := pawns.popSquare()
+
+		if color == WHITE { // WHITE pawn moves
+			oneSq := start + 8
+			twoSq := start + 16
+
+			// Single Push (Not promotions, those are handled at the end of the code)
+			if (occupancy & (1 << oneSq)) == 0 {
+				if oneSq <= 55 {
+					moveIdx = addMove(moves, start, oneSq, MOVE_CODE_NONE, false, moveIdx)
+
+					// Double Push (on second rank)
+					if start >= 8 && start <= 15 && (occupancy&(1<<twoSq)) == 0 {
+						moveIdx = addMove(moves, start, twoSq, MOVE_CODE_DOUBLE_PAWN_PUSH, false, moveIdx)
+					}
+				}
+			}
+
+			// Capture targets
+			capLeft := start + 7
+			capRight := start + 9
+
+			// Prevent wrapping around board by making sure start column is not the A column (col 0)
+			canCapLeft := start%8 > 0 && ((enemyPieces&(1<<capLeft)) != 0 || capLeft == EPS)
+
+			// Prevent wrapping around board by making sure start column is not the H column (col 7)
+			canCapRight := start%8 < 7 && ((enemyPieces&(1<<capRight)) != 0 || capRight == EPS)
+
+			// Captures (Not promotion)
+			if oneSq <= 55 {
+				if canCapLeft {
+					code := MOVE_CODE_CAPTURE
+					if capLeft == EPS {
+						code = MOVE_CODE_EN_PASSANT
+					}
+					moveIdx = addMove(moves, start, capLeft, code, false, moveIdx)
+				}
+				if canCapRight {
+					code := MOVE_CODE_CAPTURE
+					if capRight == EPS {
+						code = MOVE_CODE_EN_PASSANT
+					}
+					moveIdx = addMove(moves, start, capRight, code, false, moveIdx)
+				}
+			}
+
+			// Handle all promotions (Push or Capture landing on the last rank)
+			if oneSq > 55 {
+				// Push Promotion
+				if (occupancy & (1 << oneSq)) == 0 {
+					moveIdx = addMove(moves, start, oneSq, MOVE_CODE_PROMOTION, true, moveIdx)
+				}
+				// Capture Left Promotion
+				if canCapLeft {
+					moveIdx = addMove(moves, start, capLeft, MOVE_CODE_CAPTURE, true, moveIdx)
+				}
+				// Capture Right Promotion
+				if canCapRight {
+					moveIdx = addMove(moves, start, capRight, MOVE_CODE_CAPTURE, true, moveIdx)
+				}
+			}
+
+		} else { // BLACK pawn moves
+			oneSq := start - 8
+			twoSq := start - 16
+
+			// Single Push (Not promotions, those are handled at the end of the code)
+			if (occupancy & (1 << oneSq)) == 0 {
+				if oneSq >= 8 {
+					moveIdx = addMove(moves, start, oneSq, MOVE_CODE_NONE, false, moveIdx)
+					if start >= 48 && start <= 55 && (occupancy&(1<<twoSq)) == 0 {
+						moveIdx = addMove(moves, start, twoSq, MOVE_CODE_DOUBLE_PAWN_PUSH, false, moveIdx)
+					}
+				}
+			}
+
+			// Capture targets
+			capRight := start - 7
+			capLeft := start - 9
+
+			// Prevent wrapping around board by making sure start column is not the A column (col 0)
+			canCapRight := start%8 < 7 && ((enemyPieces&(1<<capRight)) != 0 || capRight == EPS)
+
+			// Prevent wrapping around board by making sure start column is not the H column (col 7)
+			canCapLeft := start%8 > 0 && ((enemyPieces&(1<<capLeft)) != 0 || capLeft == EPS)
+
+			// Captures (Not promotion)
+			if oneSq >= 8 {
+				if canCapLeft {
+					code := MOVE_CODE_CAPTURE
+					if capLeft == EPS {
+						code = MOVE_CODE_EN_PASSANT
+					}
+					moveIdx = addMove(moves, start, capLeft, code, false, moveIdx)
+				}
+				if canCapRight {
+					code := MOVE_CODE_CAPTURE
+					if capRight == EPS {
+						code = MOVE_CODE_EN_PASSANT
+					}
+					moveIdx = addMove(moves, start, capRight, code, false, moveIdx)
+				}
+			}
+
+			// Handle all promotions (Push or Capture landing on the last rank)
+			if oneSq < 8 {
+				// Push Promotion
+				if (occupancy & (1 << oneSq)) == 0 {
+					moveIdx = addMove(moves, start, oneSq, MOVE_CODE_PROMOTION, true, moveIdx)
+				}
+				// Capture Left Promotion
+				if canCapLeft {
+					moveIdx = addMove(moves, start, capLeft, MOVE_CODE_CAPTURE, true, moveIdx)
+				}
+				// Capture Right Promotion
+				if canCapRight {
+					moveIdx = addMove(moves, start, capRight, MOVE_CODE_CAPTURE, true, moveIdx)
+				}
+			}
+		}
+	}
+
+	return moveIdx
+}
+
 // Used by board.generateMoves() to get the pseudo-legal king moves
 // This does not include castling
 func getKingMoves(king, friendlyPieces BitBoard, moves []Move, moveIdx int) int {
 
 	for king > 0 {
 		start := king.popSquare()
-		targets := KING_MOVES[start.bitBoardPosition()] &^ friendlyPieces
+		targets := KING_MOVES[start] &^ friendlyPieces
 
 		for targets > 0 {
-			moves[moveIdx].start = start
-			moves[moveIdx].target = targets.popSquare()
-			moveIdx++
+			moveIdx = addMove(moves, start, targets.popSquare(), MOVE_CODE_NONE, false, moveIdx)
 		}
 	}
 
@@ -60,15 +190,33 @@ func getKnightMoves(knights, friendlyPieces BitBoard, moves []Move, moveIdx int)
 
 	for knights > 0 {
 		start := knights.popSquare()
-		targets := KNIGHT_MOVES[start.bitBoardPosition()] &^ friendlyPieces
+		targets := KNIGHT_MOVES[start] &^ friendlyPieces
 
 		for targets > 0 {
-			moves[moveIdx].start = start
-			moves[moveIdx].target = targets.popSquare()
-			moveIdx++
+			moveIdx = addMove(moves, start, targets.popSquare(), MOVE_CODE_NONE, false, moveIdx)
 		}
 	}
 
+	return moveIdx
+}
+
+// Helper function to add a move and increment the counter
+func addMove(moves []Move, start, target Square, code uint8, is_promotion bool, moveIdx int) int {
+	if is_promotion {
+		for _, piece := range []Piece{KNIGHT, BISHOP, ROOK, QUEEN} {
+			moves[moveIdx].start = start
+			moves[moveIdx].target = target
+			moves[moveIdx].promotion = piece
+			moves[moveIdx].code = MOVE_CODE_PROMOTION
+			moveIdx++
+		}
+	} else {
+		moves[moveIdx].start = start
+		moves[moveIdx].target = target
+		moves[moveIdx].code = code
+		moves[moveIdx].promotion = NO_PIECE
+		moveIdx++
+	}
 	return moveIdx
 }
 

@@ -22,11 +22,22 @@ type Eval int32
 
 // Definging the move structure
 // Code will be a variety of things (is a caputure, white castle kingside, etc)
+// promotion holds the piece to promote too
 type Move struct {
-	start  Square
-	target Square
-	code   uint16
+	start     Square
+	target    Square
+	promotion Piece
+	code      uint8
 }
+
+// Move code definitions
+const (
+	MOVE_CODE_NONE uint8 = iota
+	MOVE_CODE_PROMOTION
+	MOVE_CODE_CAPTURE
+	MOVE_CODE_EN_PASSANT
+	MOVE_CODE_DOUBLE_PAWN_PUSH
+)
 
 // Aliasing a Move, Eval pair
 type MoveEval struct {
@@ -65,6 +76,7 @@ const (
 	ROOK
 	QUEEN
 	KING
+	NO_PIECE
 )
 
 // Defining the types of colors
