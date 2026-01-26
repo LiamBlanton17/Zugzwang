@@ -90,6 +90,22 @@ func (bb *BitBoard) popSquare() Square {
 	return Square(idx)
 }
 
+// Helper function to setup magic bitboards
+func SetMaskOccupancy(index int, bitsInMask int, attackMask BitBoard) BitBoard {
+	occupancy := BitBoard(0)
+
+	for i := range bitsInMask {
+		square := attackMask.popSquare()
+
+		// If the i-th bit of 'index' is set, place a piece there
+		if (index & (1 << i)) != 0 {
+			occupancy |= (1 << square)
+		}
+	}
+
+	return occupancy
+}
+
 // Globals and function to setup for Zobrist hashing
 const MASTER_ZOBRIST = 20240928                                    // Used for initializing Zobrist values
 var PIECE_ZOBRIST [NUM_COLORS][NUM_PIECES][NUM_SQUARES]ZobristHash // Global for Zobrist hashing pieces
