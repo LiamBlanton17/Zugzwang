@@ -97,6 +97,7 @@ const (
 // Defining the corners of the board as ints on a bit board for better readability and total number of squares
 const (
 	TOTAL_SQUARES = 64
+	NO_SQUARE     = 255
 	A8            = 56
 	H8            = 63
 	A0            = 0

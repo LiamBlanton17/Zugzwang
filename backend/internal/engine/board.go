@@ -85,8 +85,35 @@ func (position FEN) toBoard() (*Board, error) {
 }
 
 // Return the Zobrist hash of a board
-func (b Board) toZobrist() ZobristHash {
-	return ZobristHash(0)
+func (b *Board) toZobrist() ZobristHash {
+	var hash ZobristHash
+
+	// Hash in the pieces
+	for color := range NUM_COLORS {
+		for piece := range NUM_PIECES {
+			pieceBits := b.Pieces[color][piece]
+			for pieceBits > 0 {
+				sq := pieceBits.popSquare()
+				hash ^= PIECE_ZOBRIST[color][piece][sq]
+			}
+		}
+	}
+
+	// Hash in the move
+	if b.Turn == BLACK {
+		hash ^= BLACK_TO_MOVE_ZOBRIST
+	}
+
+	// Hash in the castling rights
+	hash ^= CASTLING_ZOBRIST[b.CR]
+
+	// Hash in the en passent column
+	// Only if EPS is present
+	if b.EPS != NO_SQUARE {
+		hash ^= ENPASSENT_ZOBRIST[b.EPS%8]
+	}
+
+	return hash
 }
 
 // Take a pieces string from a FEN notation and set the board's pieces/occupancy/etc

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"math/bits"
 	"math/rand"
 )
 
@@ -78,12 +79,23 @@ func (s Square) bitBoardPosition() BitBoard {
 	return BitBoard(uint64(1) << s)
 }
 
+// Helper function to get the LSB (Square) of a bitboard and pop it off
+func (bb *BitBoard) popSquare() Square {
+	// Index of the rightmost set bit (Least Significant Bit)
+	idx := bits.TrailingZeros64(uint64(*bb))
+
+	// Removes the lowest set bit
+	*bb &= (*bb - 1)
+
+	return Square(idx)
+}
+
 // Globals and function to setup for Zobrist hashing
-const MASTER_ZOBRIST = 20240928                                 // Used for initializing Zobrist values
-var PIECE_ZOBRIST [NUM_COLORS][NUM_PIECES][TOTAL_SQUARES]uint64 // Global for Zobrist hashing pieces
-var TO_MOVE_ZOBRIST uint64                                      // Global for Zorbist hasing black to move
-var CASTLING_ZOBRIST [16]uint64                                 // Global for Zobrist hashing castling rights (1 for each combination)
-var ENPASSENT_ZOBRIST [8]uint64                                 // Global for Zobrist hashing enpassent column (8 columns totoal)
+const MASTER_ZOBRIST = 20240928                                      // Used for initializing Zobrist values
+var PIECE_ZOBRIST [NUM_COLORS][NUM_PIECES][TOTAL_SQUARES]ZobristHash // Global for Zobrist hashing pieces
+var BLACK_TO_MOVE_ZOBRIST ZobristHash                                // Global for Zorbist hasing black to move
+var CASTLING_ZOBRIST [16]ZobristHash                                 // Global for Zobrist hashing castling rights (1 for each combination)
+var ENPASSENT_ZOBRIST [8]ZobristHash                                 // Global for Zobrist hashing enpassent column (8 columns totoal)
 func initZobrist() {
 	// Setup determistic hashing with one constant master key
 	source := rand.NewSource(MASTER_ZOBRIST)
@@ -93,21 +105,21 @@ func initZobrist() {
 	for color := range NUM_COLORS {
 		for piece := range NUM_PIECES {
 			for square := range TOTAL_SQUARES {
-				PIECE_ZOBRIST[color][piece][square] = rng.Uint64()
+				PIECE_ZOBRIST[color][piece][square] = ZobristHash(rng.Uint64())
 			}
 		}
 	}
 
 	// Setup to move hashing
-	TO_MOVE_ZOBRIST = rng.Uint64()
+	BLACK_TO_MOVE_ZOBRIST = ZobristHash(rng.Uint64())
 
 	// Setup castling hashing
 	for i := range CASTLING_ZOBRIST {
-		CASTLING_ZOBRIST[i] = rng.Uint64()
+		CASTLING_ZOBRIST[i] = ZobristHash(rng.Uint64())
 	}
 
 	// Setup en passent hashing
 	for i := range ENPASSENT_ZOBRIST {
-		ENPASSENT_ZOBRIST[i] = rng.Uint64()
+		ENPASSENT_ZOBRIST[i] = ZobristHash(rng.Uint64())
 	}
 }
