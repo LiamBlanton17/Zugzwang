@@ -37,8 +37,46 @@ a2 b2 c2 d2 e2 f2 g2 h2
 a1 b1 c1 d1 e1 f1 g1 h1
 */
 
+// Global King lookup table
+// Knight move generation logic is simple, can only move 1 direction each way
+// Castling is handled elsewhere
+// During move generation at run time, AND NOT the bitboard with the occupancy of friendly pieces to avoid capturing yourself
+var KING_MOVES [64]BitBoard
+
+func initKingMoves() {
+	// UP-RIGHT +9
+	// UP +8
+	// UP-LEFT +7
+	// RIGHT +1
+	// DOWN-RIGHT -7
+	// DONW -8
+	// DOWN-LEFT -9
+	// LEFT -1
+	directions := []int{9, 8, 7, 1, -7, -8, -9, -1}
+	for i := range NUM_SQUARES {
+		for _, d := range directions {
+			t := i + d // Target square
+
+			// Check out of bounds (top/bottom)
+			if t < 0 || t > 63 {
+				continue
+			}
+
+			// Check out of bounds (crossing left/right)
+			// Make sure the column shift was only 2 or less columns
+			colShift := (t % 8) - (i % 8)
+			if colShift < -1 || colShift > 1 {
+				continue
+			}
+
+			KING_MOVES[i] |= Square(t).bitBoardPosition()
+		}
+	}
+}
+
 // Global Knight lookup table
 // Knight move generation logic is simple, just map 64 squares to a set of moves
+// During move generation at run time, AND NOT the bitboard with the occupancy of friendly pieces to avoid capturing yourself
 var KNIGHT_MOVES [64]BitBoard
 
 func initKnightMoves() {

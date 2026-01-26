@@ -57,4 +57,5 @@ func InitEngine() {
 
 	// Setup move lookup tables
 	initKnightMoves()
+	initKingMoves()
 }
