@@ -154,3 +154,49 @@ func TestStringToSquare(t *testing.T) {
 		})
 	}
 }
+
+func TestBitBoardPosition(t *testing.T) {
+	// Tests setup to be run
+	tests := []struct {
+		name   string
+		input  Square
+		result BitBoard
+	}{
+		{
+			name:   "Test #1",
+			input:  63,
+			result: 0b1000000000000000000000000000000000000000000000000000000000000000,
+		},
+		{
+			name:   "Test #2",
+			input:  0,
+			result: 0b0000000000000000000000000000000000000000000000000000000000000001,
+		},
+		{
+			name:   "Test #3",
+			input:  17,
+			result: 0b0000000000000000000000000000000000000000000000100000000000000000,
+		},
+		{
+			name:   "Test #4",
+			input:  36,
+			result: 0b0000000000000000000000000001000000000000000000000000000000000000,
+		},
+		{
+			name:   "Test #5",
+			input:  55,
+			result: 0b0000000010000000000000000000000000000000000000000000000000000000,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.input.bitBoardPosition()
+
+			// Verify the results match
+			if tc.result != result {
+				t.Errorf("Expected %v but incorrectly got %v", tc.result, result)
+			}
+		})
+	}
+}
