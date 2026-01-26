@@ -30,7 +30,9 @@ type MoveEval struct {
 }
 
 // Aliasing Square to unit8 for better type safety
-// Uint8 has a max value of 256, enough to store all 64 possible squares in it
+// Uint8 has a max value of 255, enough to store all 64 possible squares in it
+// 255 is chosen to be the "NULL" value for the square
+// Use square.bitBoardPosition to get the correct uint64 offset
 type Square uint8
 
 // Aliasing a Zobrist hash to uint64 for better type safety
@@ -67,6 +69,39 @@ const (
 	EITHER_COLOR
 )
 
+// Defining castling right constants
+// This will help for readability when checking for castling rights
+const (
+	CASTLE_WK = 0x08
+	CASTLE_WQ = 0x04
+	CASTLE_BK = 0x02
+	CASTLE_BQ = 0x01
+)
+
+// Defining characters of pieces, helpes with converting from strings into a board
+const (
+	CHAR_WK = 'K'
+	CHAR_WQ = 'Q'
+	CHAR_WR = 'R'
+	CHAR_WB = 'B'
+	CHAR_WN = 'N'
+	CHAR_WP = 'P'
+	CHAR_BK = 'k'
+	CHAR_BQ = 'q'
+	CHAR_BR = 'r'
+	CHAR_BB = 'b'
+	CHAR_BN = 'n'
+	CHAR_BP = 'p'
+)
+
+// Defining the corners of the board as ints on a bit board for better readability
+const (
+	A8 = 56
+	H8 = 63
+	A0 = 0
+	H0 = 7
+)
+
 // Defining the board structure
 type Board struct {
 
@@ -81,6 +116,11 @@ type Board struct {
 	// Check whose turn it is
 	// Ex. Board.Turn == WHITE is true if it is whites turn, false if it is blacks
 	Turn Color
+
+	// Keep track of castling rights
+	// 0000 KQkq
+	// lsb is black queenside, then black kingside, white queen, white kingside
+	CR uint8
 
 	// Keep track of which square is the en passent square
 	EPS Square
