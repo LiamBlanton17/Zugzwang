@@ -54,4 +54,7 @@ func InitEngine() {
 
 	// Setup global zobrist hashing
 	initZobrist()
+
+	// Setup move lookup tables
+	initKnightMoves()
 }

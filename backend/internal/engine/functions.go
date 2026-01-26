@@ -91,11 +91,11 @@ func (bb *BitBoard) popSquare() Square {
 }
 
 // Globals and function to setup for Zobrist hashing
-const MASTER_ZOBRIST = 20240928                                      // Used for initializing Zobrist values
-var PIECE_ZOBRIST [NUM_COLORS][NUM_PIECES][TOTAL_SQUARES]ZobristHash // Global for Zobrist hashing pieces
-var BLACK_TO_MOVE_ZOBRIST ZobristHash                                // Global for Zorbist hasing black to move
-var CASTLING_ZOBRIST [16]ZobristHash                                 // Global for Zobrist hashing castling rights (1 for each combination)
-var ENPASSENT_ZOBRIST [8]ZobristHash                                 // Global for Zobrist hashing enpassent column (8 columns totoal)
+const MASTER_ZOBRIST = 20240928                                    // Used for initializing Zobrist values
+var PIECE_ZOBRIST [NUM_COLORS][NUM_PIECES][NUM_SQUARES]ZobristHash // Global for Zobrist hashing pieces
+var BLACK_TO_MOVE_ZOBRIST ZobristHash                              // Global for Zorbist hasing black to move
+var CASTLING_ZOBRIST [16]ZobristHash                               // Global for Zobrist hashing castling rights (1 for each combination)
+var ENPASSENT_ZOBRIST [8]ZobristHash                               // Global for Zobrist hashing enpassent column (8 columns totoal)
 func initZobrist() {
 	// Setup determistic hashing with one constant master key
 	source := rand.NewSource(MASTER_ZOBRIST)
@@ -104,7 +104,7 @@ func initZobrist() {
 	// Setup piece hashing
 	for color := range NUM_COLORS {
 		for piece := range NUM_PIECES {
-			for square := range TOTAL_SQUARES {
+			for square := range NUM_SQUARES {
 				PIECE_ZOBRIST[color][piece][square] = ZobristHash(rng.Uint64())
 			}
 		}
