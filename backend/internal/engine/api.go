@@ -48,7 +48,7 @@ func Evalute(position FEN, history []FEN, numberOfMoves int) (*EvaluateResponse,
 
 /*
 InitEngine should be called once at startup.
-This setups globals like TT tables and Zobrist keys
+This setups globals like TT tables, Zobrist keys, and pregenerated moves
 */
 func InitEngine() {
 

@@ -37,6 +37,41 @@ a2 b2 c2 d2 e2 f2 g2 h2
 a1 b1 c1 d1 e1 f1 g1 h1
 */
 
+// Used by board.generateMoves() to get the pseudo-legal king moves
+// This does not include castling
+func getKingMoves(king, friendlyPieces BitBoard, moves []Move, moveIdx int) int {
+
+	for king > 0 {
+		start := king.popSquare()
+		targets := KING_MOVES[start.bitBoardPosition()] &^ friendlyPieces
+
+		for targets > 0 {
+			moves[moveIdx].start = start
+			moves[moveIdx].target = targets.popSquare()
+			moveIdx++
+		}
+	}
+
+	return moveIdx
+}
+
+// Used by board.generateMoves() to get the pseudo-legal knight moves
+func getKnightMoves(knights, friendlyPieces BitBoard, moves []Move, moveIdx int) int {
+
+	for knights > 0 {
+		start := knights.popSquare()
+		targets := KNIGHT_MOVES[start.bitBoardPosition()] &^ friendlyPieces
+
+		for targets > 0 {
+			moves[moveIdx].start = start
+			moves[moveIdx].target = targets.popSquare()
+			moveIdx++
+		}
+	}
+
+	return moveIdx
+}
+
 // Global King lookup table
 // Knight move generation logic is simple, can only move 1 direction each way
 // Castling is handled elsewhere

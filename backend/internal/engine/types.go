@@ -20,8 +20,13 @@ type Color uint8
 // Aliasing Eval to int32 for better type safety
 type Eval int32
 
-// Aliasing Move to uint32 for better type safety
-type Move uint32
+// Definging the move structure
+// Code will be a variety of things (is a caputure, white castle kingside, etc)
+type Move struct {
+	start  Square
+	target Square
+	code   uint16
+}
 
 // Aliasing a Move, Eval pair
 type MoveEval struct {
