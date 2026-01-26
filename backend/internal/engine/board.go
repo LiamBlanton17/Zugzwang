@@ -10,16 +10,9 @@ import (
 This file contains functionality related to setup, searching and evalution of a board.
 */
 
-// Note, this might need to change to "Board to Zobrist position"
-func (f FEN) toZobrist() ZobristHash {
-	return ZobristHash(0)
-}
-
 // Take a FEN string and turn it into a board, ready for the engine to search over it
 func (position FEN) toBoard() (*Board, error) {
-	board := Board{
-		Zobrist: position.toZobrist(),
-	}
+	board := Board{}
 
 	// The starting FEN position is: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	// Parts is split up:
@@ -85,17 +78,15 @@ func (position FEN) toBoard() (*Board, error) {
 	}
 	board.FMC = uint16(fm)
 
+	// Setup the Zobrist hash
+	board.Zobrist = board.toZobrist()
+
 	return &board, nil
 }
 
-func buildGameHistory(history []FEN) *GameHistory {
-	var gameHistory GameHistory
-
-	for _, h := range history {
-		gameHistory = append(gameHistory, h.toZobrist())
-	}
-
-	return &gameHistory
+// Note, this might need to change to "Board to Zobrist position"
+func (b Board) toZobrist() ZobristHash {
+	return ZobristHash(0)
 }
 
 // Take a pieces string from a FEN notation and set the board's pieces/occupancy/etc
@@ -172,6 +163,21 @@ func (b *Board) setPieces(pieces string) error {
 	}
 
 	return nil
+}
+
+func buildGameHistory(history []FEN) (*GameHistory, error) {
+	var gameHistory GameHistory
+
+	for _, h := range history {
+		b, err := h.toBoard()
+		if err != nil {
+			return nil, err
+		}
+
+		gameHistory = append(gameHistory, b.toZobrist())
+	}
+
+	return &gameHistory, nil
 }
 
 type BoardSearchResults struct {

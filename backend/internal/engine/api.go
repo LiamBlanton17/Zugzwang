@@ -28,7 +28,10 @@ func Evalute(position FEN, history []FEN, numberOfMoves int) (*EvaluateResponse,
 	}
 
 	// Build the game history from the array of fens
-	gameHistory := buildGameHistory(history)
+	gameHistory, err := buildGameHistory(history)
+	if err != nil {
+		return nil, err
+	}
 
 	// Search the board and get the results
 	results := board.search(gameHistory, numberOfMoves)
