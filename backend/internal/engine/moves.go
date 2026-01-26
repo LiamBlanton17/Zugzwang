@@ -41,6 +41,9 @@ a1 b1 c1 d1 e1 f1 g1 h1
 // Does include captures
 // Does include promotion
 // Does include enpassent
+// This is inefficient
+// Should be more like pushes := (whitePawns << 8) & ^occupancy to get all the pawn moves for white one push
+// Todo: Refactor later to make more efficient
 func getPawnMoves(pawns, enemyPieces, occupancy BitBoard, EPS Square, color Color, moves []Move, moveIdx int) int {
 
 	for pawns > 0 {
