@@ -10,6 +10,7 @@ import (
 This file contains functionality related to setup, searching and evalution of a board.
 */
 
+// Note, this might need to change to "Board to Zobrist position"
 func (f FEN) toZobrist() ZobristHash {
 	return ZobristHash(0)
 }
