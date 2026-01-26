@@ -45,3 +45,13 @@ func Evalute(position FEN, history []FEN, numberOfMoves int) (*EvaluateResponse,
 		nodes:     results.Nodes,
 	}, nil
 }
+
+/*
+InitEngine should be called once at startup.
+This setups globals like TT tables and Zobrist keys
+*/
+func InitEngine() {
+
+	// Setup global zobrist hashing
+	initZobrist()
+}

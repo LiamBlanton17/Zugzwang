@@ -1,6 +1,9 @@
 package engine
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+)
 
 /*
 This file contains random helper functions that don't belong anywhere else
@@ -73,4 +76,38 @@ func stringToSquare(s string) (Square, error) {
 // Helper function to get the index on a bitboard given some square number
 func (s Square) bitBoardPosition() BitBoard {
 	return BitBoard(uint64(1) << s)
+}
+
+// Globals and function to setup for Zobrist hashing
+const MASTER_ZOBRIST = 20240928                                 // Used for initializing Zobrist values
+var PIECE_ZOBRIST [NUM_COLORS][NUM_PIECES][TOTAL_SQUARES]uint64 // Global for Zobrist hashing pieces
+var TO_MOVE_ZOBRIST uint64                                      // Global for Zorbist hasing black to move
+var CASTLING_ZOBRIST [16]uint64                                 // Global for Zobrist hashing castling rights (1 for each combination)
+var ENPASSENT_ZOBRIST [8]uint64                                 // Global for Zobrist hashing enpassent column (8 columns totoal)
+func initZobrist() {
+	// Setup determistic hashing with one constant master key
+	source := rand.NewSource(MASTER_ZOBRIST)
+	rng := rand.New(source)
+
+	// Setup piece hashing
+	for color := range NUM_COLORS {
+		for piece := range NUM_PIECES {
+			for square := range TOTAL_SQUARES {
+				PIECE_ZOBRIST[color][piece][square] = rng.Uint64()
+			}
+		}
+	}
+
+	// Setup to move hashing
+	TO_MOVE_ZOBRIST = rng.Uint64()
+
+	// Setup castling hashing
+	for i := range CASTLING_ZOBRIST {
+		CASTLING_ZOBRIST[i] = rng.Uint64()
+	}
+
+	// Setup en passent hashing
+	for i := range ENPASSENT_ZOBRIST {
+		ENPASSENT_ZOBRIST[i] = rng.Uint64()
+	}
 }

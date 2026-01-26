@@ -84,7 +84,7 @@ func (position FEN) toBoard() (*Board, error) {
 	return &board, nil
 }
 
-// Note, this might need to change to "Board to Zobrist position"
+// Return the Zobrist hash of a board
 func (b Board) toZobrist() ZobristHash {
 	return ZobristHash(0)
 }
