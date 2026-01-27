@@ -139,6 +139,7 @@ func (b *Board) setPieces(pieces string) error {
 				case CHAR_BK:
 					b.Pieces[BLACK][KING] |= position
 					b.Occupancy[BLACK] |= position
+					b.KingSquare[BLACK] = idx
 				case CHAR_BQ:
 					b.Pieces[BLACK][QUEEN] |= position
 					b.Occupancy[BLACK] |= position
@@ -157,6 +158,7 @@ func (b *Board) setPieces(pieces string) error {
 				case CHAR_WK:
 					b.Pieces[WHITE][KING] |= position
 					b.Occupancy[WHITE] |= position
+					b.KingSquare[WHITE] = idx
 				case CHAR_WQ:
 					b.Pieces[WHITE][QUEEN] |= position
 					b.Occupancy[WHITE] |= position
@@ -194,10 +196,7 @@ func (b *Board) setPieces(pieces string) error {
 
 // Helper function to get the pieces of the opposing player of the current turn
 func (b *Board) getEnemyPieces() BitBoard {
-	if b.Turn == WHITE {
-		return b.Occupancy[BLACK]
-	}
-	return b.Occupancy[WHITE]
+	return b.Occupancy[b.Turn^1]
 }
 
 func buildGameHistory(history []FEN) (*GameHistory, error) {
@@ -272,6 +271,205 @@ func (b *Board) generatePseudoLegalMoves() {
 
 // This function makes a move, in-place, on a board, and returns if that move was legal or not
 func (b *Board) makeMove(move Move) bool {
+
+	// Create an unmake entry somewhere
+
+	// Add this boards Zobrist hash to the history and update clocks
+	b.History = append(b.History, b.Zobrist)
+	b.HMC++
+	if b.Turn == BLACK {
+		b.FMC++
+	}
+
+	// Decode the move and board start
+	start := move.start
+	target := move.target
+	startBitBoard := start.bitBoardPosition()
+	targetBitBoard := target.bitBoardPosition()
+	promotion := move.promotion
+	code := move.code
+	color := b.Turn
+	oppColor := color ^ 1
+	eps := b.EPS
+
+	// Reset enpassent (will get reset later if needed)
+	b.EPS = NO_SQUARE
+
+	// Get pieces of start and target squares
+	startPiece := b.getPieceAt(start)
+
+	// Handle captures
+	if code == MOVE_CODE_CAPTURE {
+		targetPiece := b.getPieceAt(target)
+
+		// Clear enemy piece and reset half move clock
+		b.Pieces[oppColor][targetPiece].clear(targetBitBoard)
+		b.Occupancy[oppColor].clear(targetBitBoard)
+		b.HMC = 0
+	}
+
+	// Handle the moving piece bitboards
+	b.Pieces[color][startPiece].clear(startBitBoard)
+	b.Occupancy[color].clear(startBitBoard)
+	b.Pieces[color][startPiece].set(targetBitBoard)
+	b.Occupancy[color].set(targetBitBoard)
+
+	// Handle the piece mailbox
+	b.MailBox[start] = NO_PIECE
+	b.MailBox[target] = startPiece
+
+	// Handle pawns and en passent
+	if startPiece == PAWN {
+		b.HMC = 0
+
+		// Handle pawn being double pushed
+		// Update the en passent square of the board
+		if code == MOVE_CODE_DOUBLE_PAWN_PUSH {
+			b.EPS = target
+			if color == WHITE {
+				b.EPS -= 8
+			} else {
+				b.EPS += 8
+			}
+		}
+
+		// Handle pawn capturing en passant
+		if code == MOVE_CODE_EN_PASSANT {
+			if color == WHITE {
+				eps -= 8
+			} else {
+				eps += 8
+			}
+			epsBitBoard := eps.bitBoardPosition()
+			b.Pieces[oppColor][PAWN].clear(epsBitBoard)
+			b.Occupancy[oppColor].clear(epsBitBoard)
+			b.MailBox[eps] = NO_PIECE
+		}
+
+		// Handle pawn promoting
+		if code == MOVE_CODE_PROMOTION {
+			b.Pieces[color][PAWN].clear(targetBitBoard)
+			b.Pieces[color][promotion].set(targetBitBoard)
+			b.MailBox[target] = promotion
+		}
+	}
+
+	// Handle castling (moving rook and updating castling rights)
+	if code == MOVE_CODE_CASTLE {
+		// White Kingside
+		if target == G1 {
+			h1BB := H1.bitBoardPosition()
+			f1BB := F1.bitBoardPosition()
+			b.Pieces[WHITE][ROOK].clear(h1BB)
+			b.Occupancy[WHITE].clear(h1BB)
+			b.Pieces[WHITE][ROOK].set(f1BB)
+			b.Occupancy[WHITE].set(f1BB)
+			b.MailBox[H1] = NO_PIECE
+			b.MailBox[F1] = ROOK
+
+			// Clear white castling rights
+			b.CR &= ^uint8(CASTLE_WK)
+			b.CR &= ^uint8(CASTLE_WQ)
+		}
+
+		// White Queenside
+		if target == C1 {
+			a1BB := A1.bitBoardPosition()
+			d1BB := D1.bitBoardPosition()
+			b.Pieces[WHITE][ROOK].clear(a1BB)
+			b.Occupancy[WHITE].clear(a1BB)
+			b.Pieces[WHITE][ROOK].set(d1BB)
+			b.Occupancy[WHITE].set(d1BB)
+			b.MailBox[A1] = NO_PIECE
+			b.MailBox[D1] = ROOK
+
+			// Clear white castling rights
+			b.CR &= ^uint8(CASTLE_WK)
+			b.CR &= ^uint8(CASTLE_WQ)
+		}
+
+		// Black Kingside
+		if target == G8 {
+			h8BB := H8.bitBoardPosition()
+			f8BB := F8.bitBoardPosition()
+			b.Pieces[BLACK][ROOK].clear(h8BB)
+			b.Occupancy[BLACK].clear(h8BB)
+			b.Pieces[BLACK][ROOK].set(f8BB)
+			b.Occupancy[BLACK].set(f8BB)
+			b.MailBox[H8] = NO_PIECE
+			b.MailBox[F8] = ROOK
+
+			// Clear black castling rights
+			b.CR &= ^uint8(CASTLE_BK)
+			b.CR &= ^uint8(CASTLE_BQ)
+		}
+
+		// Black Kingside
+		if target == C8 {
+			a8BB := A8.bitBoardPosition()
+			d8BB := D8.bitBoardPosition()
+			b.Pieces[BLACK][ROOK].clear(a8BB)
+			b.Occupancy[BLACK].clear(a8BB)
+			b.Pieces[BLACK][ROOK].set(d8BB)
+			b.Occupancy[BLACK].set(d8BB)
+			b.MailBox[A8] = NO_PIECE
+			b.MailBox[D8] = ROOK
+
+			// Clear black castling rights
+			b.CR &= ^uint8(CASTLE_BK)
+			b.CR &= ^uint8(CASTLE_BQ)
+		}
+	}
+
+	// Update king square
+	if startPiece == KING {
+		b.KingSquare[color] = target
+
+		// Clear castling rights
+		if color == WHITE {
+			// Clear white castling rights
+			b.CR &= ^uint8(CASTLE_WK)
+			b.CR &= ^uint8(CASTLE_WQ)
+		} else {
+			// Clear black castling rights
+			b.CR &= ^uint8(CASTLE_BK)
+			b.CR &= ^uint8(CASTLE_BQ)
+		}
+	}
+
+	// If still has castling rights, check corners for rooks
+	// If corner doesn't have rooks (moved or captures) unset castling rights
+	if b.CR&CASTLE_WK != 0 || b.CR&CASTLE_WQ != 0 {
+		// If rook not on H1, remove white queenside castling rights
+		if b.Pieces[WHITE][ROOK]&H1.bitBoardPosition() == 0 {
+			b.CR &= ^uint8(CASTLE_WK)
+		}
+		// If rook not on A1, remove white queenside castling rights
+		if b.Pieces[WHITE][ROOK]&A1.bitBoardPosition() == 0 {
+			b.CR &= ^uint8(CASTLE_WQ)
+		}
+	}
+	if b.CR&CASTLE_BK != 0 || b.CR&CASTLE_BQ != 0 {
+		// If rook not on H1, remove white queenside castling rights
+		if b.Pieces[BLACK][ROOK]&H8.bitBoardPosition() == 0 {
+			b.CR &= ^uint8(CASTLE_BK)
+		}
+		// If rook not on A8, remove black queenside castling rights
+		if b.Pieces[BLACK][ROOK]&A8.bitBoardPosition() == 0 {
+			b.CR &= ^uint8(CASTLE_BQ)
+		}
+	}
+
+	// Update board turn and update either color occupancy
+	b.Turn ^= 1
+	b.Occupancy[EITHER_COLOR] = (b.Occupancy[WHITE] | b.Occupancy[BLACK])
+
+	// Verify the board start is legal
+	// Make sure the king is not attacked
+	if b.isSquareAttacked(b.KingSquare[color], b.Turn) {
+		return false
+	}
+
 	return true
 }
 
@@ -285,4 +483,9 @@ func (b *Board) isMoveLegal(move Move) bool {
 	isLegal := b.makeMove(move)
 	b.unMakeMove(move)
 	return isLegal
+}
+
+// This function returns the piece at a specific square
+func (b *Board) getPieceAt(sq Square) Piece {
+	return b.MailBox[sq]
 }

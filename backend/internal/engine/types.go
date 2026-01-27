@@ -120,8 +120,8 @@ const (
 	NO_SQUARE   Square = 255
 	A8          Square = 56
 	H8          Square = 63
-	A0          Square = 0
-	H0          Square = 7
+	A1          Square = 0
+	H1          Square = 7
 
 	// These squares are useful for castling move generation
 	B1 Square = 1
@@ -148,6 +148,10 @@ type Board struct {
 	// Used to track if the squares are occupied at all, by color or by either color
 	// Ex. Board.Occupancy[EITHER_COLOR] is a bitboard where the 1s are occupied squares, by either color
 	Occupancy [NUM_COLORS + 1]BitBoard
+
+	// Used to fast lookup of pieces, keeps track of what piece is on what square
+	// This is a "mailbox" approach and trades a bit more space for more efficient piece look ups
+	MailBox [NUM_SQUARES]Piece
 
 	// Check whose turn it is
 	// Ex. Board.Turn == WHITE is true if it is whites turn, false if it is blacks
@@ -179,7 +183,7 @@ type Board struct {
 	// History of board positions
 	// This is allocated once at the start of the search
 	// These are just Zobrist hashes
-	History []ZobristHash
+	History GameHistory
 
 	// Preallocated slice of moves
 	// This is allocated once at the start of the search
@@ -187,4 +191,8 @@ type Board struct {
 
 	// This stores how many moves there are, as well as keeps track of the index to insert into
 	MoveIdx uint8
+
+	// This stores the square of the king for both sides
+	// Keep this updated, makes finding the king more efficient during move generation
+	KingSquare [NUM_COLORS]Square
 }

@@ -90,6 +90,16 @@ func (bb *BitBoard) popSquare() Square {
 	return Square(idx)
 }
 
+// Helper function to clear a bit off a bitboard
+func (bb *BitBoard) clear(b BitBoard) {
+	*bb &= ^b
+}
+
+// Helper function to set a bit on a bitboard
+func (bb *BitBoard) set(b BitBoard) {
+	*bb |= b
+}
+
 // Helper function to setup magic bitboards
 func SetMaskOccupancy(index int, bitsInMask int, attackMask BitBoard) BitBoard {
 	occupancy := BitBoard(0)
