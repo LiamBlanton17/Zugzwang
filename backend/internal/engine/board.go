@@ -224,49 +224,45 @@ func (b *Board) search(history *GameHistory, numberOfMoves int) BoardSearchResul
 	return BoardSearchResults{}
 }
 
-// This function generates all legal moves in a position and fills out a pre-allocated move array
+// This function generates all legal moves in a position
 // DO NOT USE THIS IN THE SEARCH OR ENGINE HOTPATH
 // This should only be used for giving the frontend the legal moves in a position
-func (b *Board) generateLegalMoves(moves []Move, legalMoves []Move) int {
-	moveIdx := b.generatePseudoLegalMoves(moves)
+func (b *Board) generateLegalMoves() []Move {
+	b.generatePseudoLegalMoves()
+	moves := b.Moves
+	legalMoves := make([]Move, 0, len(b.Moves))
 
-	legalMoveIdx := 0
-	for i := range moveIdx {
+	for i := range b.MoveIdx {
 		if b.isMoveLegal(moves[i]) {
-			legalMoves[legalMoveIdx] = moves[i]
-			legalMoveIdx++
+			legalMoves = append(legalMoves, b.Moves[i])
 		}
 	}
 
-	return legalMoveIdx
+	return legalMoves
 }
 
 // This function generates all pseduo legal moves in a position and fills out a pre-allocated move array
 // This is desirable as the engine will check the legality of the move in the search itself
 // This could avoid calling isMoveLegal for 30+ moves if we hit an AB-cutoff early, which is a big optimization
-func (b *Board) generatePseudoLegalMoves(moves []Move) int {
-	moveIdx := 0
+func (b *Board) generatePseudoLegalMoves() {
+	// Generate pseudo-legal pawn moves
+	b.getPawnMoves()
 
-	// Get pseudo-legal pawn moves
-	moveIdx = b.getPawnMoves(moves, moveIdx)
+	// Generate pseudo-legal knight moves
+	b.getKnightMoves()
 
-	// Get pseudo-legal knight moves
-	moveIdx = b.getKnightMoves(moves, moveIdx)
+	// Generate pseudo-legal king moves
+	b.getKingMoves()
 
-	// Get pseudo-legal king moves
-	moveIdx = b.getKingMoves(moves, moveIdx)
+	// Generate pseudo-legal bishop moves
+	b.getBishopMoves()
 
-	// Get pseudo-legal bishop moves
-	moveIdx = b.getBishopMoves(moves, moveIdx)
+	// Generate pseudo-legal rook moves
+	b.getRookMoves()
 
-	// Get pseudo-legal rook moves
-	moveIdx = b.getRookMoves(moves, moveIdx)
+	// Generate pseudo-legal queen moves
+	b.getQueenMoves()
 
-	// Get pseudo-legal queen moves
-	moveIdx = b.getQueenMoves(moves, moveIdx)
-
-	// Get pseudo-legal castling moves
-	moveIdx = b.getCastlingMoves(moves, moveIdx)
-
-	return moveIdx
+	// Generate pseudo-legal castling moves
+	b.getCastlingMoves()
 }

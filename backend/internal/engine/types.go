@@ -175,4 +175,16 @@ type Board struct {
 	// This is the Zobrist hash of the board position
 	// This is vital in TT tables and hashing
 	Zobrist ZobristHash
+
+	// History of board positions
+	// This is allocated once at the start of the search
+	// These are just Zobrist hashes
+	History []ZobristHash
+
+	// Preallocated slice of moves
+	// This is allocated once at the start of the search
+	Moves []Move
+
+	// This stores how many moves there are, as well as keeps track of the index to insert into
+	MoveIdx uint8
 }
