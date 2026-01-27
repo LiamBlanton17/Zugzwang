@@ -37,6 +37,7 @@ const (
 	MOVE_CODE_CAPTURE
 	MOVE_CODE_EN_PASSANT
 	MOVE_CODE_DOUBLE_PAWN_PUSH
+	MOVE_CODE_CASTLE
 )
 
 // Aliasing a Move, Eval pair
@@ -123,12 +124,12 @@ const (
 	H0          Square = 7
 
 	// These squares are useful for castling move generation
-	B0 Square = 1
-	C0 Square = 2
-	D0 Square = 3
-	E0 Square = 4
-	F0 Square = 5
-	G0 Square = 6
+	B1 Square = 1
+	C1 Square = 2
+	D1 Square = 3
+	E1 Square = 4
+	F1 Square = 5
+	G1 Square = 6
 	B8 Square = 57
 	C8 Square = 58
 	D8 Square = 59

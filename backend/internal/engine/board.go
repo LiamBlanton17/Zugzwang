@@ -224,8 +224,49 @@ func (b *Board) search(history *GameHistory, numberOfMoves int) BoardSearchResul
 	return BoardSearchResults{}
 }
 
-func (b *Board) generateMoves() []Move {
-	var moves []Move
+// This function generates all legal moves in a position and fills out a pre-allocated move array
+// DO NOT USE THIS IN THE SEARCH OR ENGINE HOTPATH
+// This should only be used for giving the frontend the legal moves in a position
+func (b *Board) generateLegalMoves(moves []Move, legalMoves []Move) int {
+	moveIdx := b.generatePseudoLegalMoves(moves)
 
-	return moves
+	legalMoveIdx := 0
+	for i := range moveIdx {
+		if b.isMoveLegal(moves[i]) {
+			legalMoves[legalMoveIdx] = moves[i]
+			legalMoveIdx++
+		}
+	}
+
+	return legalMoveIdx
+}
+
+// This function generates all pseduo legal moves in a position and fills out a pre-allocated move array
+// This is desirable as the engine will check the legality of the move in the search itself
+// This could avoid calling isMoveLegal for 30+ moves if we hit an AB-cutoff early, which is a big optimization
+func (b *Board) generatePseudoLegalMoves(moves []Move) int {
+	moveIdx := 0
+
+	// Get pseudo-legal pawn moves
+	moveIdx = b.getPawnMoves(moves, moveIdx)
+
+	// Get pseudo-legal knight moves
+	moveIdx = b.getKnightMoves(moves, moveIdx)
+
+	// Get pseudo-legal king moves
+	moveIdx = b.getKingMoves(moves, moveIdx)
+
+	// Get pseudo-legal bishop moves
+	moveIdx = b.getBishopMoves(moves, moveIdx)
+
+	// Get pseudo-legal rook moves
+	moveIdx = b.getRookMoves(moves, moveIdx)
+
+	// Get pseudo-legal queen moves
+	moveIdx = b.getQueenMoves(moves, moveIdx)
+
+	// Get pseudo-legal castling moves
+	moveIdx = b.getCastlingMoves(moves, moveIdx)
+
+	return moveIdx
 }

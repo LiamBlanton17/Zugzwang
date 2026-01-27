@@ -310,18 +310,31 @@ func (b *Board) getCastlingMoves(moves []Move, moveIdx int) int {
 	// White can castle kingside
 	if CASTLE_WK&b.CR != 0 && b.Turn == WHITE {
 
-		// Make sure f0 and g0 are empty
-		if F0.bitBoardPosition()&occupancy == 0 && G0.bitBoardPosition()&occupancy == 0 {
+		// Make sure f1 and g1 are empty
+		if F1.bitBoardPosition()&occupancy == 0 && G1.bitBoardPosition()&occupancy == 0 {
 
+			// Make sure e1, f1 are not attacked (can't castle out of or through check)
+			// Checking if the king is placed in check on g1 is handled later, when validating all moves against
+			// Illegally putting the king in check
+			if !b.isSquareAttacked(E1, BLACK) && !b.isSquareAttacked(F1, BLACK) {
+				moveIdx = addMove(moves, E1, G1, MOVE_CODE_CASTLE, false, moveIdx)
+			}
 		}
 	}
 
 	// White can castle queenside
 	if CASTLE_WQ&b.CR != 0 && b.Turn == WHITE {
 
-		// Make sure d0, c0 and b0 are empty
-		if D0.bitBoardPosition()&occupancy == 0 && C0.bitBoardPosition()&occupancy == 0 && B0.bitBoardPosition()&occupancy == 0 {
+		// Make sure d1, c1 and b1 are empty
+		if D1.bitBoardPosition()&occupancy == 0 && C1.bitBoardPosition()&occupancy == 0 && B1.bitBoardPosition()&occupancy == 0 {
 
+			// Make sure e1, d1 are not attacked (can't castle out of or through check)
+			// Checking if the king is placed in check on c1 is handled later, when validating all moves against
+			// Illegally putting the king in check
+			// TODO: Optimize to avoid repeat calls checking e1 for both queen/kingside castling, though its probably not often
+			if !b.isSquareAttacked(E1, BLACK) && !b.isSquareAttacked(D1, BLACK) {
+				moveIdx = addMove(moves, E1, C1, MOVE_CODE_CASTLE, false, moveIdx)
+			}
 		}
 	}
 
@@ -331,6 +344,12 @@ func (b *Board) getCastlingMoves(moves []Move, moveIdx int) int {
 		// Make sure f8 and g8 are empty
 		if F8.bitBoardPosition()&occupancy == 0 && G8.bitBoardPosition()&occupancy == 0 {
 
+			// Make sure e8, f8 are not attacked (can't castle out of or through check)
+			// Checking if the king is placed in check on g8 is handled later, when validating all moves against
+			// Illegally putting the king in check
+			if !b.isSquareAttacked(E8, WHITE) && !b.isSquareAttacked(F8, WHITE) {
+				moveIdx = addMove(moves, E8, G8, MOVE_CODE_CASTLE, false, moveIdx)
+			}
 		}
 	}
 
@@ -340,6 +359,13 @@ func (b *Board) getCastlingMoves(moves []Move, moveIdx int) int {
 		// Make sure b8, c8, and d8 are empty
 		if D8.bitBoardPosition()&occupancy == 0 && C8.bitBoardPosition()&occupancy == 0 && B8.bitBoardPosition()&occupancy == 0 {
 
+			// Make sure e8, d8  are not attacked (can't castle out of or through check)
+			// Checking if the king is placed in check on c8 is handled later, when validating all moves against
+			// Illegally putting the king in check
+			// TODO: Optimize to avoid repeat calls checking E8 for both queen/kingside castling, though its probably not often
+			if !b.isSquareAttacked(E8, WHITE) && !b.isSquareAttacked(D8, WHITE) {
+				moveIdx = addMove(moves, E8, C8, MOVE_CODE_CASTLE, false, moveIdx)
+			}
 		}
 
 	}
@@ -811,4 +837,21 @@ func initKnightMoves() {
 			KNIGHT_MOVES[i] |= Square(t).bitBoardPosition()
 		}
 	}
+}
+
+// This function makes a move, in-place, on a board, and returns if that move was legal or not
+func (b *Board) makeMove(move Move) bool {
+	return true
+}
+
+// This function unmakes a move, in-place, on a board
+func (b *Board) unMakeMove(move Move) {
+
+}
+
+// This function simply checks if a move was legal, utilizing make and unmake moves
+func (b *Board) isMoveLegal(move Move) bool {
+	isLegal := b.makeMove(move)
+	b.unMakeMove(move)
+	return isLegal
 }
