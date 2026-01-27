@@ -304,7 +304,45 @@ func (b *Board) getKnightMoves(moves []Move, moveIdx int) int {
 
 // Used by board.generateMoves() to get the legal castling moves
 // This function checks for king is attacked after the move, which is the main logical difference between legal and pseudo-legal
-func (b *Board) getCastlingMoves(king, enemyPieces BitBoard, moves []Move, moveIdx int) int {
+func (b *Board) getCastlingMoves(moves []Move, moveIdx int) int {
+	occupancy := b.Occupancy[EITHER_COLOR]
+
+	// White can castle kingside
+	if CASTLE_WK&b.CR != 0 && b.Turn == WHITE {
+
+		// Make sure f0 and g0 are empty
+		if F0.bitBoardPosition()&occupancy == 0 && G0.bitBoardPosition()&occupancy == 0 {
+
+		}
+	}
+
+	// White can castle queenside
+	if CASTLE_WQ&b.CR != 0 && b.Turn == WHITE {
+
+		// Make sure d0, c0 and b0 are empty
+		if D0.bitBoardPosition()&occupancy == 0 && C0.bitBoardPosition()&occupancy == 0 && B0.bitBoardPosition()&occupancy == 0 {
+
+		}
+	}
+
+	// Black can castle kingside
+	if CASTLE_BK&b.CR != 0 && b.Turn == BLACK {
+
+		// Make sure f8 and g8 are empty
+		if F8.bitBoardPosition()&occupancy == 0 && G8.bitBoardPosition()&occupancy == 0 {
+
+		}
+	}
+
+	// Black can castle queenside
+	if CASTLE_BQ&b.CR != 0 && b.Turn == BLACK {
+
+		// Make sure b8, c8, and d8 are empty
+		if D8.bitBoardPosition()&occupancy == 0 && C8.bitBoardPosition()&occupancy == 0 && B8.bitBoardPosition()&occupancy == 0 {
+
+		}
+
+	}
 
 	return moveIdx
 }

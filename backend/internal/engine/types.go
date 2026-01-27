@@ -111,14 +111,30 @@ const (
 	CHAR_BP = 'p'
 )
 
-// Defining the corners of the board as ints on a bit board for better readability and total number of squares
+// Defining the corners of the board as ints on a bit board for better readability
+// Defining total number of squares on chess board (not strictly needed but can make some code look nicer)
+// Defining some other helpful squares here
 const (
-	NUM_SQUARES = 64
-	NO_SQUARE   = 255
-	A8          = 56
-	H8          = 63
-	A0          = 0
-	H0          = 7
+	NUM_SQUARES        = 64
+	NO_SQUARE   Square = 255
+	A8          Square = 56
+	H8          Square = 63
+	A0          Square = 0
+	H0          Square = 7
+
+	// These squares are useful for castling move generation
+	B0 Square = 1
+	C0 Square = 2
+	D0 Square = 3
+	E0 Square = 4
+	F0 Square = 5
+	G0 Square = 6
+	B8 Square = 57
+	C8 Square = 58
+	D8 Square = 59
+	E8 Square = 60
+	F8 Square = 61
+	G8 Square = 62
 )
 
 // Defining the board structure
