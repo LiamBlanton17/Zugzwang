@@ -852,20 +852,3 @@ func initKnightMoves() {
 		}
 	}
 }
-
-// This function makes a move, in-place, on a board, and returns if that move was legal or not
-func (b *Board) makeMove(move Move) bool {
-	return true
-}
-
-// This function unmakes a move, in-place, on a board
-func (b *Board) unMakeMove(move Move) {
-
-}
-
-// This function simply checks if a move was legal, utilizing make and unmake moves
-func (b *Board) isMoveLegal(move Move) bool {
-	isLegal := b.makeMove(move)
-	b.unMakeMove(move)
-	return isLegal
-}

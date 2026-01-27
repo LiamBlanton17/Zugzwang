@@ -245,6 +245,9 @@ func (b *Board) generateLegalMoves() []Move {
 // This is desirable as the engine will check the legality of the move in the search itself
 // This could avoid calling isMoveLegal for 30+ moves if we hit an AB-cutoff early, which is a big optimization
 func (b *Board) generatePseudoLegalMoves() {
+	// Reset board move index
+	b.MoveIdx = 0
+
 	// Generate pseudo-legal pawn moves
 	b.getPawnMoves()
 
@@ -265,4 +268,21 @@ func (b *Board) generatePseudoLegalMoves() {
 
 	// Generate pseudo-legal castling moves
 	b.getCastlingMoves()
+}
+
+// This function makes a move, in-place, on a board, and returns if that move was legal or not
+func (b *Board) makeMove(move Move) bool {
+	return true
+}
+
+// This function unmakes a move, in-place, on a board
+func (b *Board) unMakeMove(move Move) {
+
+}
+
+// This function simply checks if a move was legal, utilizing make and unmake moves
+func (b *Board) isMoveLegal(move Move) bool {
+	isLegal := b.makeMove(move)
+	b.unMakeMove(move)
+	return isLegal
 }
