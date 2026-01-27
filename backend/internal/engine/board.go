@@ -269,10 +269,78 @@ func (b *Board) generatePseudoLegalMoves() {
 	b.getCastlingMoves()
 }
 
+// This function unmakes a move, in-place, on a board
+// TODO: Update Zobrist hash
+func (b *Board) unMakeMove(unmove MoveUndo) {
+
+	// Pop a zobrist entry off the history
+	if len(b.History) > 0 {
+		b.History = b.History[:len(b.History)-1]
+	}
+
+	// Roll back the full move counter
+	b.FMC--
+
+	// Reset the half move couner
+	b.HMC = unmove.hmc
+
+	// Reset EPS
+	b.EPS = unmove.eps
+
+	// Reset the color
+	b.Turn ^= 1
+
+	// Decode move and board
+	color := b.Turn
+	oppColor := color ^ 1
+	start := unmove.start
+	target := unmove.target
+	captured := unmove.captured
+	code := unmove.code
+	startBitBoard := start.bitBoardPosition()
+	targetBitBoard := target.bitBoardPosition()
+
+	// Get piece at target square (the one that moved there from the start square)
+	targetPiece := b.getPieceAt(target)
+
+	// Reset bitboard and mailbox
+	b.Pieces[color][targetPiece].clear(targetBitBoard)
+	b.Occupancy[color].clear(targetBitBoard)
+	b.Pieces[color][targetPiece].set(startBitBoard)
+	b.Occupancy[color].set(startBitBoard)
+	b.MailBox[target] = captured
+
+	// If piece captured was not NO_PIECE update those bit boards
+	if captured != NO_PIECE {
+
+		// If code was en passent, target square is one row off of where peice should go back too
+		capturedSq := target
+		if code == MOVE_CODE_EN_PASSANT {
+			if color == WHITE {
+				capturedSq -= 8
+			} else {
+				capturedSq += 8
+			}
+		}
+		b.Pieces[oppColor][captured].set(capturedSq.bitBoardPosition())
+		b.Occupancy[oppColor].set(capturedSq.bitBoardPosition())
+	}
+
+	// Handle castling
+	if code == MOVE_CODE_CASTLE {
+
+	}
+
+	// Update either color occupancy
+	b.Occupancy[EITHER_COLOR] = (b.Occupancy[WHITE] | b.Occupancy[BLACK])
+}
+
 // This function makes a move, in-place, on a board, and returns if that move was legal or not
-func (b *Board) makeMove(move Move) bool {
+// TODO: Update Zobrist hash
+func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 
 	// Create an unmake entry somewhere
+	var unmake MoveUndo
 
 	// Add this boards Zobrist hash to the history and update clocks
 	b.History = append(b.History, b.Zobrist)
@@ -467,21 +535,16 @@ func (b *Board) makeMove(move Move) bool {
 	// Verify the board start is legal
 	// Make sure the king is not attacked
 	if b.isSquareAttacked(b.KingSquare[color], b.Turn) {
-		return false
+		return unmake, false
 	}
 
-	return true
-}
-
-// This function unmakes a move, in-place, on a board
-func (b *Board) unMakeMove(move Move) {
-
+	return unmake, true
 }
 
 // This function simply checks if a move was legal, utilizing make and unmake moves
 func (b *Board) isMoveLegal(move Move) bool {
-	isLegal := b.makeMove(move)
-	b.unMakeMove(move)
+	unmove, isLegal := b.makeMove(move)
+	b.unMakeMove(unmove)
 	return isLegal
 }
 

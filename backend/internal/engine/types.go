@@ -30,6 +30,17 @@ type Move struct {
 	code      uint8
 }
 
+// This structure is used to unmake moves in place on a board, after making a move
+type MoveUndo struct {
+	cr       uint8
+	hmc      uint8
+	code     uint8
+	captured Piece
+	eps      Square
+	start    Square
+	target   Square
+}
+
 // Move code definitions
 const (
 	MOVE_CODE_NONE uint8 = iota
