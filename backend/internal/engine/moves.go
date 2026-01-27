@@ -43,12 +43,14 @@ a1 b1 c1 d1 e1 f1 g1 h1
 */
 
 // Used by board.generateMoves() to get the pseudo-legal queen moves
-func getQueenMoves(queens, friendlyPieces, enemyPieces, occupancy BitBoard, moves []Move, moveIdx int) int {
+func (b *Board) getQueenMoves(moves []Move, moveIdx int) int {
+	queens := b.Pieces[b.Turn][QUEEN]
+	enemyPieces := b.getEnemyPieces()
 
 	for queens > 0 {
 		start := queens.popSquare()
-		magicIdx := MAGIC_ROOK_INFO[start].getMagicIndex(occupancy)
-		magicMoves := MAGIC_ROOK_MOVES[start][magicIdx] &^ friendlyPieces
+		magicIdx := MAGIC_ROOK_INFO[start].getMagicIndex(b.Occupancy[EITHER_COLOR])
+		magicMoves := MAGIC_ROOK_MOVES[start][magicIdx] &^ b.Occupancy[b.Turn]
 
 		for magicMoves > 0 {
 			target := magicMoves.popSquare()
@@ -61,8 +63,8 @@ func getQueenMoves(queens, friendlyPieces, enemyPieces, occupancy BitBoard, move
 			moveIdx = addMove(moves, start, target, code, false, moveIdx)
 		}
 
-		magicIdx = MAGIC_BISHOP_INFO[start].getMagicIndex(occupancy)
-		magicMoves = MAGIC_BISHOP_MOVES[start][magicIdx] &^ friendlyPieces
+		magicIdx = MAGIC_BISHOP_INFO[start].getMagicIndex(b.Occupancy[EITHER_COLOR])
+		magicMoves = MAGIC_BISHOP_MOVES[start][magicIdx] &^ b.Occupancy[b.Turn]
 
 		for magicMoves > 0 {
 			target := magicMoves.popSquare()
@@ -80,12 +82,14 @@ func getQueenMoves(queens, friendlyPieces, enemyPieces, occupancy BitBoard, move
 }
 
 // Used by board.generateMoves() to get the pseudo-legal rook moves
-func getRookMoves(rooks, friendlyPieces, enemyPieces, occupancy BitBoard, moves []Move, moveIdx int) int {
+func (b *Board) getRookMoves(moves []Move, moveIdx int) int {
+	rooks := b.Pieces[b.Turn][ROOK]
+	enemyPieces := b.getEnemyPieces()
 
 	for rooks > 0 {
 		start := rooks.popSquare()
-		magicIdx := MAGIC_ROOK_INFO[start].getMagicIndex(occupancy)
-		magicMoves := MAGIC_ROOK_MOVES[start][magicIdx] &^ friendlyPieces
+		magicIdx := MAGIC_ROOK_INFO[start].getMagicIndex(b.Occupancy[EITHER_COLOR])
+		magicMoves := MAGIC_ROOK_MOVES[start][magicIdx] &^ b.Occupancy[b.Turn]
 
 		for magicMoves > 0 {
 			target := magicMoves.popSquare()
@@ -103,12 +107,14 @@ func getRookMoves(rooks, friendlyPieces, enemyPieces, occupancy BitBoard, moves 
 }
 
 // Used by board.generateMoves() to get the pseudo-legal bishop moves
-func getBishopMoves(bishops, friendlyPieces, enemyPieces, occupancy BitBoard, moves []Move, moveIdx int) int {
+func (b *Board) getBishopMoves(moves []Move, moveIdx int) int {
+	bishops := b.Pieces[b.Turn][BISHOP]
+	enemyPieces := b.getEnemyPieces()
 
 	for bishops > 0 {
 		start := bishops.popSquare()
-		magicIdx := MAGIC_BISHOP_INFO[start].getMagicIndex(occupancy)
-		magicMoves := MAGIC_BISHOP_MOVES[start][magicIdx] &^ friendlyPieces
+		magicIdx := MAGIC_BISHOP_INFO[start].getMagicIndex(b.Occupancy[EITHER_COLOR])
+		magicMoves := MAGIC_BISHOP_MOVES[start][magicIdx] &^ b.Occupancy[b.Turn]
 
 		for magicMoves > 0 {
 			target := magicMoves.popSquare()
@@ -132,12 +138,15 @@ func getBishopMoves(bishops, friendlyPieces, enemyPieces, occupancy BitBoard, mo
 // This is inefficient
 // Should be more like pushes := (whitePawns << 8) & ^occupancy to get all the pawn moves for white one push
 // Todo: Refactor later to make more efficient
-func getPawnMoves(pawns, enemyPieces, occupancy BitBoard, EPS Square, color Color, moves []Move, moveIdx int) int {
+func (b *Board) getPawnMoves(moves []Move, moveIdx int) int {
+	pawns := b.Pieces[b.Turn][PAWN]
+	occupancy := b.Occupancy[b.Turn]
+	enemyPieces := b.getEnemyPieces()
 
 	for pawns > 0 {
 		start := pawns.popSquare()
 
-		if color == WHITE { // WHITE pawn moves
+		if b.Turn == WHITE { // WHITE pawn moves
 			oneSq := start + 8
 			twoSq := start + 16
 
@@ -158,23 +167,23 @@ func getPawnMoves(pawns, enemyPieces, occupancy BitBoard, EPS Square, color Colo
 			capRight := start + 9
 
 			// Prevent wrapping around board by making sure start column is not the A column (col 0)
-			canCapLeft := start%8 > 0 && ((enemyPieces&capLeft.bitBoardPosition()) != 0 || capLeft == EPS)
+			canCapLeft := start%8 > 0 && ((enemyPieces&capLeft.bitBoardPosition()) != 0 || capLeft == b.EPS)
 
 			// Prevent wrapping around board by making sure start column is not the H column (col 7)
-			canCapRight := start%8 < 7 && ((enemyPieces&capRight.bitBoardPosition()) != 0 || capRight == EPS)
+			canCapRight := start%8 < 7 && ((enemyPieces&capRight.bitBoardPosition()) != 0 || capRight == b.EPS)
 
 			// Captures (Not promotion)
 			if oneSq <= 55 {
 				if canCapLeft {
 					code := MOVE_CODE_CAPTURE
-					if capLeft == EPS {
+					if capLeft == b.EPS {
 						code = MOVE_CODE_EN_PASSANT
 					}
 					moveIdx = addMove(moves, start, capLeft, code, false, moveIdx)
 				}
 				if canCapRight {
 					code := MOVE_CODE_CAPTURE
-					if capRight == EPS {
+					if capRight == b.EPS {
 						code = MOVE_CODE_EN_PASSANT
 					}
 					moveIdx = addMove(moves, start, capRight, code, false, moveIdx)
@@ -216,23 +225,23 @@ func getPawnMoves(pawns, enemyPieces, occupancy BitBoard, EPS Square, color Colo
 			capLeft := start - 9
 
 			// Prevent wrapping around board by making sure start column is not the A column (col 0)
-			canCapRight := start%8 < 7 && ((enemyPieces&capRight.bitBoardPosition()) != 0 || capRight == EPS)
+			canCapRight := start%8 < 7 && ((enemyPieces&capRight.bitBoardPosition()) != 0 || capRight == b.EPS)
 
 			// Prevent wrapping around board by making sure start column is not the H column (col 7)
-			canCapLeft := start%8 > 0 && ((enemyPieces&capLeft.bitBoardPosition()) != 0 || capLeft == EPS)
+			canCapLeft := start%8 > 0 && ((enemyPieces&capLeft.bitBoardPosition()) != 0 || capLeft == b.EPS)
 
 			// Captures (Not promotion)
 			if oneSq >= 8 {
 				if canCapLeft {
 					code := MOVE_CODE_CAPTURE
-					if capLeft == EPS {
+					if capLeft == b.EPS {
 						code = MOVE_CODE_EN_PASSANT
 					}
 					moveIdx = addMove(moves, start, capLeft, code, false, moveIdx)
 				}
 				if canCapRight {
 					code := MOVE_CODE_CAPTURE
-					if capRight == EPS {
+					if capRight == b.EPS {
 						code = MOVE_CODE_EN_PASSANT
 					}
 					moveIdx = addMove(moves, start, capRight, code, false, moveIdx)
@@ -262,11 +271,12 @@ func getPawnMoves(pawns, enemyPieces, occupancy BitBoard, EPS Square, color Colo
 
 // Used by board.generateMoves() to get the pseudo-legal king moves
 // This does not include castling
-func getKingMoves(king, friendlyPieces BitBoard, moves []Move, moveIdx int) int {
+func (b *Board) getKingMoves(moves []Move, moveIdx int) int {
+	king := b.Pieces[b.Turn][KING]
 
 	for king > 0 {
 		start := king.popSquare()
-		targets := KING_MOVES[start] &^ friendlyPieces
+		targets := KING_MOVES[start] &^ b.Occupancy[b.Turn]
 
 		for targets > 0 {
 			moveIdx = addMove(moves, start, targets.popSquare(), MOVE_CODE_NONE, false, moveIdx)
@@ -277,11 +287,12 @@ func getKingMoves(king, friendlyPieces BitBoard, moves []Move, moveIdx int) int 
 }
 
 // Used by board.generateMoves() to get the pseudo-legal knight moves
-func getKnightMoves(knights, friendlyPieces BitBoard, moves []Move, moveIdx int) int {
+func (b *Board) getKnightMoves(moves []Move, moveIdx int) int {
+	knights := b.Pieces[b.Turn][KNIGHT]
 
 	for knights > 0 {
 		start := knights.popSquare()
-		targets := KNIGHT_MOVES[start] &^ friendlyPieces
+		targets := KNIGHT_MOVES[start] &^ b.Occupancy[b.Turn]
 
 		for targets > 0 {
 			moveIdx = addMove(moves, start, targets.popSquare(), MOVE_CODE_NONE, false, moveIdx)
@@ -289,6 +300,66 @@ func getKnightMoves(knights, friendlyPieces BitBoard, moves []Move, moveIdx int)
 	}
 
 	return moveIdx
+}
+
+// Used by board.generateMoves() to get the legal castling moves
+// This function checks for king is attacked after the move, which is the main logical difference between legal and pseudo-legal
+func (b *Board) getCastlingMoves(king, enemyPieces BitBoard, moves []Move, moveIdx int) int {
+
+	return moveIdx
+}
+
+// Helper function to check if a square is under attack, most useful for checking if king is under attack after a pseudo-legal move
+func (b *Board) isSquareAttacked(sq Square, attackerSide Color) bool {
+	// Check Pawn Attacks
+	if attackerSide == WHITE {
+		if sq%8 > 0 { // Not on A column
+			if sq >= 9 && (sq-9).bitBoardPosition()&b.Pieces[WHITE][PAWN] != 0 {
+				return true
+			}
+		}
+		if sq%8 < 7 { // Not on H column
+			if sq >= 7 && (sq-7).bitBoardPosition()&b.Pieces[WHITE][PAWN] != 0 {
+				return true
+			}
+		}
+	} else {
+		if sq%8 > 0 { // Not on A column
+			if sq <= 56 && (sq+7).bitBoardPosition()&b.Pieces[BLACK][PAWN] != 0 {
+				return true
+			}
+		}
+		if sq%8 < 7 { // Not on H column
+			if sq <= 54 && (sq+9).bitBoardPosition()&b.Pieces[BLACK][PAWN] != 0 {
+				return true
+			}
+		}
+	}
+
+	// Check Knight Attacks
+	if (KNIGHT_MOVES[sq] & b.Pieces[attackerSide][KNIGHT]) != 0 {
+		return true
+	}
+
+	// Check King Attacks
+	if (KING_MOVES[sq] & b.Pieces[attackerSide][KING]) != 0 {
+		return true
+	}
+
+	// Check Bishop/Queen Diagonal Attacks
+	// Reuse your magic bitboards!
+	bIdx := MAGIC_BISHOP_INFO[sq].getMagicIndex(b.Occupancy[EITHER_COLOR])
+	if (MAGIC_BISHOP_MOVES[sq][bIdx] & (b.Pieces[attackerSide][BISHOP] | b.Pieces[attackerSide][QUEEN])) != 0 {
+		return true
+	}
+
+	// Check Rook/Queen Straight Attacks
+	rIdx := MAGIC_ROOK_INFO[sq].getMagicIndex(b.Occupancy[EITHER_COLOR])
+	if (MAGIC_ROOK_MOVES[sq][rIdx] & (b.Pieces[attackerSide][ROOK] | b.Pieces[attackerSide][QUEEN])) != 0 {
+		return true
+	}
+
+	return false
 }
 
 // Helper function to add a move and increment the counter

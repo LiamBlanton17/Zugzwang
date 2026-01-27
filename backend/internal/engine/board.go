@@ -192,6 +192,14 @@ func (b *Board) setPieces(pieces string) error {
 	return nil
 }
 
+// Helper function to get the pieces of the opposing player of the current turn
+func (b *Board) getEnemyPieces() BitBoard {
+	if b.Turn == WHITE {
+		return b.Occupancy[BLACK]
+	}
+	return b.Occupancy[WHITE]
+}
+
 func buildGameHistory(history []FEN) (*GameHistory, error) {
 	var gameHistory GameHistory
 
