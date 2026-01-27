@@ -70,8 +70,7 @@ func findMagicNumber(sq int, mask engine.BitBoard, shift int, isRook bool) uint6
 		attempt++
 		candidate := randomMagicCandidate()
 
-		// This array simulates the hash table for this specific candidate
-		// tableSize must match the shift (e.g. shift 52 -> 12 bits -> 4096 size)
+		// This array simulates the magic hash table
 		tableSize := 1 << (64 - shift)
 		used := make([]engine.BitBoard, tableSize)
 		filled := make([]bool, tableSize)

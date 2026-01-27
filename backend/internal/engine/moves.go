@@ -42,6 +42,89 @@ a2 b2 c2 d2 e2 f2 g2 h2
 a1 b1 c1 d1 e1 f1 g1 h1
 */
 
+// Used by board.generateMoves() to get the pseudo-legal queen moves
+func getQueenMoves(queens, friendlyPieces, enemyPieces, occupancy BitBoard, moves []Move, moveIdx int) int {
+
+	for queens > 0 {
+		start := queens.popSquare()
+		magicIdx := MAGIC_ROOK_INFO[start].getMagicIndex(occupancy)
+		magicMoves := MAGIC_ROOK_MOVES[start][magicIdx] &^ friendlyPieces
+
+		for magicMoves > 0 {
+			target := magicMoves.popSquare()
+
+			// Handle move code if a capture
+			code := MOVE_CODE_NONE
+			if target.bitBoardPosition()&enemyPieces != 0 {
+				code = MOVE_CODE_CAPTURE
+			}
+			moveIdx = addMove(moves, start, target, code, false, moveIdx)
+		}
+
+		magicIdx = MAGIC_BISHOP_INFO[start].getMagicIndex(occupancy)
+		magicMoves = MAGIC_BISHOP_MOVES[start][magicIdx] &^ friendlyPieces
+
+		for magicMoves > 0 {
+			target := magicMoves.popSquare()
+
+			// Handle move code if a capture
+			code := MOVE_CODE_NONE
+			if target.bitBoardPosition()&enemyPieces != 0 {
+				code = MOVE_CODE_CAPTURE
+			}
+			moveIdx = addMove(moves, start, target, code, false, moveIdx)
+		}
+	}
+
+	return moveIdx
+}
+
+// Used by board.generateMoves() to get the pseudo-legal rook moves
+func getRookMoves(rooks, friendlyPieces, enemyPieces, occupancy BitBoard, moves []Move, moveIdx int) int {
+
+	for rooks > 0 {
+		start := rooks.popSquare()
+		magicIdx := MAGIC_ROOK_INFO[start].getMagicIndex(occupancy)
+		magicMoves := MAGIC_ROOK_MOVES[start][magicIdx] &^ friendlyPieces
+
+		for magicMoves > 0 {
+			target := magicMoves.popSquare()
+
+			// Handle move code if a capture
+			code := MOVE_CODE_NONE
+			if target.bitBoardPosition()&enemyPieces != 0 {
+				code = MOVE_CODE_CAPTURE
+			}
+			moveIdx = addMove(moves, start, target, code, false, moveIdx)
+		}
+	}
+
+	return moveIdx
+}
+
+// Used by board.generateMoves() to get the pseudo-legal bishop moves
+func getBishopMoves(bishops, friendlyPieces, enemyPieces, occupancy BitBoard, moves []Move, moveIdx int) int {
+
+	for bishops > 0 {
+		start := bishops.popSquare()
+		magicIdx := MAGIC_BISHOP_INFO[start].getMagicIndex(occupancy)
+		magicMoves := MAGIC_BISHOP_MOVES[start][magicIdx] &^ friendlyPieces
+
+		for magicMoves > 0 {
+			target := magicMoves.popSquare()
+
+			// Handle move code if a capture
+			code := MOVE_CODE_NONE
+			if target.bitBoardPosition()&enemyPieces != 0 {
+				code = MOVE_CODE_CAPTURE
+			}
+			moveIdx = addMove(moves, start, target, code, false, moveIdx)
+		}
+	}
+
+	return moveIdx
+}
+
 // Used by board.generateMoves() to get the pseudo-legal pawn moves
 // Does include captures
 // Does include promotion
@@ -240,6 +323,7 @@ type Magic struct {
 	shift int
 }
 
+// Helper function to get the magic index
 func (m *Magic) getMagicIndex(occupancy BitBoard) int {
 	return int((uint64(occupancy&m.mask) * m.magic) >> m.shift)
 }
@@ -247,6 +331,7 @@ func (m *Magic) getMagicIndex(occupancy BitBoard) int {
 // Global rook magic info
 var MAGIC_ROOK_INFO [NUM_SQUARES]Magic
 
+// Function should be called once at startup to initialize the magic rook tables
 func initMagicRook() {
 
 	for i := range NUM_SQUARES {
@@ -396,6 +481,7 @@ var MAGIC_BISHOP_MASK [NUM_SQUARES]BitBoard
 // Global rook magic info
 var MAGIC_BISHOP_INFO [NUM_SQUARES]Magic
 
+// Function should be called once at startup to initialize the magic bishop tables
 func initMagicBishop() {
 
 	for i := range NUM_SQUARES {
