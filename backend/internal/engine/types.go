@@ -35,19 +35,19 @@ type Move struct {
 
 // This structure is used to unmake moves in place on a board, after making a move
 type MoveUndo struct {
-	cr       uint8
-	hmc      uint8
-	code     uint8
-	captured Piece
-	eps      Square
-	start    Square
-	target   Square
+	cr          uint8
+	hmc         uint8
+	code        uint8
+	isPromotion bool
+	captured    Piece
+	eps         Square
+	start       Square
+	target      Square
 }
 
 // Move code definitions
 const (
 	MOVE_CODE_NONE uint8 = iota
-	MOVE_CODE_PROMOTION
 	MOVE_CODE_CAPTURE
 	MOVE_CODE_EN_PASSANT
 	MOVE_CODE_DOUBLE_PAWN_PUSH

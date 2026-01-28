@@ -194,7 +194,7 @@ func (b *Board) getPawnMoves(moves []Move, moveIdx int) int {
 			if oneSq > 55 {
 				// Push Promotion
 				if (occupancy & oneSq.bitBoardPosition()) == 0 {
-					moveIdx = addMove(moves, start, oneSq, MOVE_CODE_PROMOTION, true, moveIdx)
+					moveIdx = addMove(moves, start, oneSq, MOVE_CODE_NONE, true, moveIdx)
 				}
 				// Capture Left Promotion
 				if canCapLeft {
@@ -252,7 +252,7 @@ func (b *Board) getPawnMoves(moves []Move, moveIdx int) int {
 			if oneSq < 8 {
 				// Push Promotion
 				if occupancy&oneSq.bitBoardPosition() == 0 {
-					moveIdx = addMove(moves, start, oneSq, MOVE_CODE_PROMOTION, true, moveIdx)
+					moveIdx = addMove(moves, start, oneSq, MOVE_CODE_NONE, true, moveIdx)
 				}
 				// Capture Left Promotion
 				if canCapLeft {
@@ -439,13 +439,13 @@ func (b *Board) isSquareAttacked(sq Square, attackerSide Color) bool {
 }
 
 // Helper function to add a move and increment the counter
-func addMove(moves []Move, start, target Square, code uint8, is_promotion bool, moveIdx int) int {
-	if is_promotion {
+func addMove(moves []Move, start, target Square, code uint8, isPromotion bool, moveIdx int) int {
+	if isPromotion {
 		for _, piece := range []Piece{KNIGHT, BISHOP, ROOK, QUEEN} {
 			moves[moveIdx].start = start
 			moves[moveIdx].target = target
 			moves[moveIdx].promotion = piece
-			moves[moveIdx].code = MOVE_CODE_PROMOTION
+			moves[moveIdx].code = code
 			moveIdx++
 		}
 	} else {

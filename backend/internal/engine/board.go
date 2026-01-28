@@ -323,6 +323,7 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 	target := unmove.target
 	captured := unmove.captured
 	code := unmove.code
+	isPromotion := unmove.isPromotion
 	startBitBoard := start.bitBoardPosition()
 	targetBitBoard := target.bitBoardPosition()
 
@@ -355,7 +356,7 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 	}
 
 	// Handle promotion by downgrading back to a pawn
-	if code == MOVE_CODE_PROMOTION {
+	if isPromotion {
 		b.Pieces[color][targetPiece].clear(startBitBoard)
 		b.Pieces[color][PAWN].set(startBitBoard)
 		b.MailBox[start] = PAWN
@@ -400,7 +401,7 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 			b.MailBox[H8] = ROOK
 		}
 
-		// Black Kingside
+		// Black Queenside
 		if target == C8 {
 			a8BB := A8.bitBoardPosition()
 			d8BB := D8.bitBoardPosition()
@@ -423,14 +424,16 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 }
 
 // This function makes a move, in-place, on a board, and returns if that move was legal or not
+// ERROR: Promotion does not capture the enemy piece, and then will not undo it
 func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 
 	// Create an unmake entry somewhere
 	unmake := MoveUndo{
-		hmc:      b.HMC,
-		cr:       b.CR,
-		eps:      b.EPS,
-		captured: NO_PIECE,
+		hmc:         b.HMC,
+		cr:          b.CR,
+		eps:         b.EPS,
+		captured:    NO_PIECE,
+		isPromotion: false,
 	}
 
 	// Add this boards Zobrist hash to the history and update clocks
@@ -532,7 +535,7 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 		}
 
 		// Handle pawn promoting
-		if code == MOVE_CODE_PROMOTION {
+		if promotion != NO_PIECE {
 			b.Pieces[color][PAWN].clear(targetBitBoard)
 			b.Pieces[color][promotion].set(targetBitBoard)
 			b.MailBox[target] = promotion
@@ -540,6 +543,9 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			// Hash out pawn and in promoted piece
 			b.Zobrist ^= PIECE_ZOBRIST[color][PAWN][target]
 			b.Zobrist ^= PIECE_ZOBRIST[color][promotion][target]
+
+			// Store it for unmake later
+			unmake.isPromotion = true
 		}
 	}
 
@@ -601,7 +607,7 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.CR &= ^uint8(CASTLE_BQ)
 		}
 
-		// Black Kingside
+		// Black Queenside
 		if target == C8 {
 			a8BB := A8.bitBoardPosition()
 			d8BB := D8.bitBoardPosition()
@@ -701,5 +707,79 @@ func (b *Board) print() {
 			fmt.Print(piece.toString(color) + " ")
 		}
 		fmt.Println()
+	}
+}
+
+// Useful for debugging move and unmove
+func (b *Board) desync(where string) {
+	for sq := range NUM_SQUARES {
+		sqBB := Square(sq).bitBoardPosition()
+
+		// Get Mailbox State
+		mbPiece := b.getPieceAt(Square(sq))
+		mbColor := WHITE
+		if b.Occupancy[BLACK]&sqBB != 0 {
+			mbColor = BLACK
+		}
+
+		// Get Bitboard State
+		bbPiece := NO_PIECE
+		bbColor := WHITE
+
+		// Check White Pieces
+		if b.Pieces[WHITE][KING]&sqBB != 0 {
+			bbPiece = KING
+			bbColor = WHITE
+		} else if b.Pieces[WHITE][QUEEN]&sqBB != 0 {
+			bbPiece = QUEEN
+			bbColor = WHITE
+		} else if b.Pieces[WHITE][ROOK]&sqBB != 0 {
+			bbPiece = ROOK
+			bbColor = WHITE
+		} else if b.Pieces[WHITE][BISHOP]&sqBB != 0 {
+			bbPiece = BISHOP
+			bbColor = WHITE
+		} else if b.Pieces[WHITE][KNIGHT]&sqBB != 0 {
+			bbPiece = KNIGHT
+			bbColor = WHITE
+		} else if b.Pieces[WHITE][PAWN]&sqBB != 0 {
+			bbPiece = PAWN
+			bbColor = WHITE
+		} else if b.Pieces[BLACK][KING]&sqBB != 0 {
+			bbPiece = KING
+			bbColor = BLACK
+		} else if b.Pieces[BLACK][QUEEN]&sqBB != 0 {
+			bbPiece = QUEEN
+			bbColor = BLACK
+		} else if b.Pieces[BLACK][ROOK]&sqBB != 0 {
+			bbPiece = ROOK
+			bbColor = BLACK
+		} else if b.Pieces[BLACK][BISHOP]&sqBB != 0 {
+			bbPiece = BISHOP
+			bbColor = BLACK
+		} else if b.Pieces[BLACK][KNIGHT]&sqBB != 0 {
+			bbPiece = KNIGHT
+			bbColor = BLACK
+		} else if b.Pieces[BLACK][PAWN]&sqBB != 0 {
+			bbPiece = PAWN
+			bbColor = BLACK
+		}
+
+		// Compare Piece Types
+		if mbPiece != bbPiece {
+			b.print()
+			fmt.Printf("DESYNC AT %v (%s) -> Mailbox: %v, Bitboard: %v\n", Square(sq).toString(), where, mbPiece.toString(mbColor), bbPiece.toString(bbColor))
+			panic("Board desync: Piece Mismatch")
+		}
+
+		// Compare Colors (Only if a piece actually exists)
+		if mbPiece != NO_PIECE {
+
+			if mbColor != bbColor {
+				b.print()
+				fmt.Printf("DESYNC AT %d (%s) -> Mailbox Color: %d, Bitboard Color: %d\n", sq, where, mbColor, bbColor)
+				panic("Board desync: Color Mismatch")
+			}
+		}
 	}
 }

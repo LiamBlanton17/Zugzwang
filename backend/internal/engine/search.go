@@ -21,7 +21,7 @@ func (b *Board) negamax(depth uint8, moveStack [][]Move) NegamaxResult {
 	}
 
 	eval := MIN_EVAL
-	nodes := 1
+	nodes := 0
 
 	// Generate the pseudo legal moves to play, populating this depths move in the movestack
 	// TODO: Sort these moves
