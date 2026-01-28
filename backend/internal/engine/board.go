@@ -129,6 +129,11 @@ func (b *Board) setPieces(pieces string) error {
 		return fmt.Errorf("Invalid FEN string; Should be 8 rows of pieces in the FEN string (found %v)", len(pieceParts))
 	}
 
+	// Set all mailboxes to empty, the below loop will populate with the correct pieces
+	for i := range NUM_SQUARES {
+		b.MailBox[i] = NO_PIECE
+	}
+
 	// Loop over each part and each character in the part
 	// Check each character, and update the correct bit boards and advance the index as needed
 	idx := Square(A8) // The current index we are at (starting in top left of board at 56)
@@ -145,40 +150,52 @@ func (b *Board) setPieces(pieces string) error {
 					b.Pieces[BLACK][KING] |= position
 					b.Occupancy[BLACK] |= position
 					b.KingSquare[BLACK] = idx
+					b.MailBox[idx] = KING
 				case CHAR_BQ:
 					b.Pieces[BLACK][QUEEN] |= position
 					b.Occupancy[BLACK] |= position
+					b.MailBox[idx] = QUEEN
 				case CHAR_BR:
 					b.Pieces[BLACK][ROOK] |= position
 					b.Occupancy[BLACK] |= position
+					b.MailBox[idx] = ROOK
 				case CHAR_BB:
 					b.Pieces[BLACK][BISHOP] |= position
 					b.Occupancy[BLACK] |= position
+					b.MailBox[idx] = BISHOP
 				case CHAR_BN:
 					b.Pieces[BLACK][KNIGHT] |= position
 					b.Occupancy[BLACK] |= position
+					b.MailBox[idx] = KNIGHT
 				case CHAR_BP:
 					b.Pieces[BLACK][PAWN] |= position
 					b.Occupancy[BLACK] |= position
+					b.MailBox[idx] = PAWN
 				case CHAR_WK:
 					b.Pieces[WHITE][KING] |= position
 					b.Occupancy[WHITE] |= position
 					b.KingSquare[WHITE] = idx
+					b.MailBox[idx] = KING
 				case CHAR_WQ:
 					b.Pieces[WHITE][QUEEN] |= position
 					b.Occupancy[WHITE] |= position
+					b.MailBox[idx] = QUEEN
 				case CHAR_WR:
 					b.Pieces[WHITE][ROOK] |= position
 					b.Occupancy[WHITE] |= position
+					b.MailBox[idx] = ROOK
 				case CHAR_WB:
 					b.Pieces[WHITE][BISHOP] |= position
 					b.Occupancy[WHITE] |= position
+					b.MailBox[idx] = BISHOP
 				case CHAR_WN:
 					b.Pieces[WHITE][KNIGHT] |= position
 					b.Occupancy[WHITE] |= position
+					b.MailBox[idx] = KNIGHT
 				case CHAR_WP:
 					b.Pieces[WHITE][PAWN] |= position
 					b.Occupancy[WHITE] |= position
+					b.MailBox[idx] = PAWN
 				default:
 					return fmt.Errorf("Invalid FEN string; Invalid piece present on the board: %q", c)
 				}
@@ -664,4 +681,20 @@ func (b *Board) isMoveLegal(move Move) bool {
 // This function returns the piece at a specific square
 func (b *Board) getPieceAt(sq Square) Piece {
 	return b.MailBox[sq]
+}
+
+// This function prints the board to stdout, useful for debugging or CLI
+func (b *Board) print() {
+	for i := 7; i >= 0; i-- {
+		for j := 7; j >= 0; j-- {
+			sq := Square(i*8 + j)
+			piece := b.getPieceAt(sq)
+			color := WHITE
+			if b.Occupancy[WHITE]&sq.bitBoardPosition() == 0 {
+				color = BLACK
+			}
+			fmt.Print(piece.toString(color) + " ")
+		}
+		fmt.Println()
+	}
 }

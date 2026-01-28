@@ -74,6 +74,95 @@ func stringToSquare(s string) (Square, error) {
 	return Square(row*8 + col), nil
 }
 
+// Converts a Square (a number that will map to 0-63 on a bitboard) to a string (such as h7 or d3)
+func (sq Square) toString() string {
+	// 255 is chosen to be the "NULL" value for the square
+	if sq == NO_SQUARE {
+		return " "
+	}
+
+	// Check the column
+	str := ""
+	switch sq % 8 {
+	case 0:
+		str = "a"
+	case 1:
+		str = "b"
+	case 2:
+		str = "c"
+	case 3:
+		str = "d"
+	case 4:
+		str = "e"
+	case 5:
+		str = "f"
+	case 6:
+		str = "g"
+	case 7:
+		str = "h"
+	}
+
+	// Check the row
+	switch sq / 8 {
+	case 0:
+		str += "a"
+	case 1:
+		str += "b"
+	case 2:
+		str += "c"
+	case 3:
+		str += "d"
+	case 4:
+		str += "e"
+	case 5:
+		str += "f"
+	case 6:
+		str += "g"
+	case 7:
+		str += "h"
+	}
+
+	return str
+}
+
+// Converts a Piece to a character
+func (p Piece) toString(c Color) string {
+	switch p {
+	case KING:
+		if c == BLACK {
+			return "k"
+		}
+		return "K"
+	case QUEEN:
+		if c == BLACK {
+			return "q"
+		}
+		return "Q"
+	case ROOK:
+		if c == BLACK {
+			return "r"
+		}
+		return "R"
+	case BISHOP:
+		if c == BLACK {
+			return "b"
+		}
+		return "B"
+	case KNIGHT:
+		if c == BLACK {
+			return "k"
+		}
+		return "N"
+	case PAWN:
+		if c == BLACK {
+			return "p"
+		}
+		return "P"
+	}
+
+	return "-"
+}
+
 // Helper function to get the index on a bitboard given some square number
 func (s Square) bitBoardPosition() BitBoard {
 	return BitBoard(uint64(1) << s)

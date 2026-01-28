@@ -21,6 +21,7 @@ func Preft() {
 	// Setup board from starting position, do not worry about the error
 	board, _ := STARTING_POSITION_FEN.toBoard(nil)
 
+	board.print()
 	result := board.negamax(TEST_DEPTH, moveStack)
 
 	fmt.Printf("Total nodes searched: %v", result.nodes)
