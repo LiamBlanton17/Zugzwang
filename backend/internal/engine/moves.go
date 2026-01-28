@@ -140,7 +140,7 @@ func (b *Board) getBishopMoves(moves []Move, moveIdx int) int {
 // Todo: Refactor later to make more efficient
 func (b *Board) getPawnMoves(moves []Move, moveIdx int) int {
 	pawns := b.Pieces[b.Turn][PAWN]
-	occupancy := b.Occupancy[b.Turn]
+	occupancy := b.Occupancy[EITHER_COLOR]
 	enemyPieces := b.getEnemyPieces()
 
 	for pawns > 0 {
@@ -273,13 +273,19 @@ func (b *Board) getPawnMoves(moves []Move, moveIdx int) int {
 // This does not include castling
 func (b *Board) getKingMoves(moves []Move, moveIdx int) int {
 	king := b.Pieces[b.Turn][KING]
+	enemyPieces := b.getEnemyPieces()
 
 	for king > 0 {
 		start := king.popSquare()
 		targets := KING_MOVES[start] &^ b.Occupancy[b.Turn]
 
 		for targets > 0 {
-			moveIdx = addMove(moves, start, targets.popSquare(), MOVE_CODE_NONE, false, moveIdx)
+			target := targets.popSquare()
+			code := MOVE_CODE_NONE
+			if target.bitBoardPosition()&enemyPieces != 0 {
+				code = MOVE_CODE_CAPTURE
+			}
+			moveIdx = addMove(moves, start, target, code, false, moveIdx)
 		}
 	}
 
@@ -289,13 +295,19 @@ func (b *Board) getKingMoves(moves []Move, moveIdx int) int {
 // Used by board.generateMoves() to get the pseudo-legal knight moves
 func (b *Board) getKnightMoves(moves []Move, moveIdx int) int {
 	knights := b.Pieces[b.Turn][KNIGHT]
+	enemyPieces := b.getEnemyPieces()
 
 	for knights > 0 {
 		start := knights.popSquare()
 		targets := KNIGHT_MOVES[start] &^ b.Occupancy[b.Turn]
 
 		for targets > 0 {
-			moveIdx = addMove(moves, start, targets.popSquare(), MOVE_CODE_NONE, false, moveIdx)
+			target := targets.popSquare()
+			code := MOVE_CODE_NONE
+			if target.bitBoardPosition()&enemyPieces != 0 {
+				code = MOVE_CODE_CAPTURE
+			}
+			moveIdx = addMove(moves, start, target, code, false, moveIdx)
 		}
 	}
 

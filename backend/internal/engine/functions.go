@@ -105,21 +105,21 @@ func (sq Square) toString() string {
 	// Check the row
 	switch sq / 8 {
 	case 0:
-		str += "a"
+		str += "1"
 	case 1:
-		str += "b"
+		str += "2"
 	case 2:
-		str += "c"
+		str += "3"
 	case 3:
-		str += "d"
+		str += "4"
 	case 4:
-		str += "e"
+		str += "5"
 	case 5:
-		str += "f"
+		str += "6"
 	case 6:
-		str += "g"
+		str += "7"
 	case 7:
-		str += "h"
+		str += "8"
 	}
 
 	return str
@@ -150,7 +150,7 @@ func (p Piece) toString(c Color) string {
 		return "B"
 	case KNIGHT:
 		if c == BLACK {
-			return "k"
+			return "n"
 		}
 		return "N"
 	case PAWN:

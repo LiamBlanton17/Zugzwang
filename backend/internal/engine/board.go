@@ -457,7 +457,9 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 	unmake.code = code
 
 	// Hash out enpassent square
-	b.Zobrist ^= ENPASSENT_ZOBRIST[b.EPS%8]
+	if b.EPS != NO_SQUARE {
+		b.Zobrist ^= ENPASSENT_ZOBRIST[b.EPS%8]
+	}
 
 	// Reset enpassent (will get reset later if needed)
 	b.EPS = NO_SQUARE
@@ -524,6 +526,9 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 
 			// Hash out captured enemy pawn
 			b.Zobrist ^= PIECE_ZOBRIST[oppColor][PAWN][eps]
+
+			// Add to unmake struct
+			unmake.captured = PAWN
 		}
 
 		// Handle pawn promoting
@@ -657,7 +662,7 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 
 	// Update board turn and update either color occupancy
 	b.Turn ^= 1
-	b.Occupancy[EITHER_COLOR] = (b.Occupancy[WHITE] | b.Occupancy[BLACK])
+	b.Occupancy[EITHER_COLOR] = b.Occupancy[WHITE] | b.Occupancy[BLACK]
 
 	// Hash in turn
 	b.Zobrist ^= BLACK_TO_MOVE_ZOBRIST
