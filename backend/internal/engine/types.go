@@ -60,10 +60,10 @@ type MoveEval struct {
 	eval Eval
 }
 
-// Defining mins and maxes for the eval type, this is just the same as the max for a 32 bit int
+// Defining mins and maxes for the eval type, this is close to max for 32-bit int but not there (to avoid overflow issues)
 const (
-	MAX_EVAL = Eval(2147483647)
-	MIN_EVAL = Eval(-2147483648)
+	MAX_EVAL = Eval(2000000000)
+	MIN_EVAL = Eval(-2000000000)
 )
 
 // Define the max ply the engine will search too

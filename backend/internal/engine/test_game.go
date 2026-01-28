@@ -26,7 +26,7 @@ func TestGame() {
 
 	// Setup the starting board
 	board, _ := STARTING_POSITION_FEN.toBoard(nil)
-	const depth = uint8(8)
+	const depth = uint8(6)
 
 	for {
 
