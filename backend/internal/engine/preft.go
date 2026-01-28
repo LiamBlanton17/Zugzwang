@@ -74,7 +74,7 @@ func Perft() {
 
 		// Search
 		start := time.Now()
-		result := board.rootSearch(test.depth, moveStack, false)
+		result := board.perftNegamax(test.depth, moveStack)
 		searchTime := time.Since(start)
 		mnps := (float64(result.nodes) / searchTime.Seconds()) / 1000000
 
