@@ -8,6 +8,9 @@ This package contains all the aliases and definitions for the types and constant
 // The starting FEN position is: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 type FEN string
 
+// Define the starting position
+const STARTING_POSITION_FEN = FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+
 // Aliasing PGN to string for better type safety
 type PGN string
 
@@ -56,6 +59,20 @@ type MoveEval struct {
 	move Move
 	eval Eval
 }
+
+// Defining mins and maxes for the eval type, this is just the same as the max for a 32 bit int
+const (
+	MAX_EVAL = Eval(2147483647)
+	MIN_EVAL = Eval(-2147483648)
+)
+
+// Defining the max number of moves in a position
+// This comes from lichess official study that it is 218, but setting to 256 is fine
+const MAX_NUMBER_OF_MOVES_IN_A_POSITION = 256
+
+// Defining the starting history length
+// This can be tweaked if needed, but shouldn't have too much of an effect on the performance
+const STARTING_HISTORY_LENGTH = 50
 
 // Aliasing Square to unit8 for better type safety
 // Uint8 has a max value of 255, enough to store all 64 possible squares in it
@@ -195,13 +212,6 @@ type Board struct {
 	// This is allocated once at the start of the search
 	// These are just Zobrist hashes
 	History GameHistory
-
-	// Preallocated slice of moves
-	// This is allocated once at the start of the search
-	Moves []Move
-
-	// This stores how many moves there are, as well as keeps track of the index to insert into
-	MoveIdx uint8
 
 	// This stores the square of the king for both sides
 	// Keep this updated, makes finding the king more efficient during move generation

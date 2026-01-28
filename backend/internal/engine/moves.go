@@ -43,9 +43,7 @@ a1 b1 c1 d1 e1 f1 g1 h1
 */
 
 // Used by board.generateMoves() to get the pseudo-legal queen moves
-func (b *Board) getQueenMoves() {
-	moves := b.Moves
-	moveIdx := b.MoveIdx
+func (b *Board) getQueenMoves(moves []Move, moveIdx int) int {
 	queens := b.Pieces[b.Turn][QUEEN]
 	enemyPieces := b.getEnemyPieces()
 
@@ -80,13 +78,11 @@ func (b *Board) getQueenMoves() {
 		}
 	}
 
-	b.MoveIdx = moveIdx
+	return moveIdx
 }
 
 // Used by board.generateMoves() to get the pseudo-legal rook moves
-func (b *Board) getRookMoves() {
-	moves := b.Moves
-	moveIdx := b.MoveIdx
+func (b *Board) getRookMoves(moves []Move, moveIdx int) int {
 	rooks := b.Pieces[b.Turn][ROOK]
 	enemyPieces := b.getEnemyPieces()
 
@@ -107,13 +103,11 @@ func (b *Board) getRookMoves() {
 		}
 	}
 
-	b.MoveIdx = moveIdx
+	return moveIdx
 }
 
 // Used by board.generateMoves() to get the pseudo-legal bishop moves
-func (b *Board) getBishopMoves() {
-	moves := b.Moves
-	moveIdx := b.MoveIdx
+func (b *Board) getBishopMoves(moves []Move, moveIdx int) int {
 	bishops := b.Pieces[b.Turn][BISHOP]
 	enemyPieces := b.getEnemyPieces()
 
@@ -134,7 +128,7 @@ func (b *Board) getBishopMoves() {
 		}
 	}
 
-	b.MoveIdx = moveIdx
+	return moveIdx
 }
 
 // Used by board.generateMoves() to get the pseudo-legal pawn moves
@@ -144,9 +138,7 @@ func (b *Board) getBishopMoves() {
 // This is inefficient
 // Should be more like pushes := (whitePawns << 8) & ^occupancy to get all the pawn moves for white one push
 // Todo: Refactor later to make more efficient
-func (b *Board) getPawnMoves() {
-	moves := b.Moves
-	moveIdx := b.MoveIdx
+func (b *Board) getPawnMoves(moves []Move, moveIdx int) int {
 	pawns := b.Pieces[b.Turn][PAWN]
 	occupancy := b.Occupancy[b.Turn]
 	enemyPieces := b.getEnemyPieces()
@@ -274,14 +266,12 @@ func (b *Board) getPawnMoves() {
 		}
 	}
 
-	b.MoveIdx = moveIdx
+	return moveIdx
 }
 
 // Used by board.generateMoves() to get the pseudo-legal king moves
 // This does not include castling
-func (b *Board) getKingMoves() {
-	moves := b.Moves
-	moveIdx := b.MoveIdx
+func (b *Board) getKingMoves(moves []Move, moveIdx int) int {
 	king := b.Pieces[b.Turn][KING]
 
 	for king > 0 {
@@ -293,13 +283,11 @@ func (b *Board) getKingMoves() {
 		}
 	}
 
-	b.MoveIdx = moveIdx
+	return moveIdx
 }
 
 // Used by board.generateMoves() to get the pseudo-legal knight moves
-func (b *Board) getKnightMoves() {
-	moves := b.Moves
-	moveIdx := b.MoveIdx
+func (b *Board) getKnightMoves(moves []Move, moveIdx int) int {
 	knights := b.Pieces[b.Turn][KNIGHT]
 
 	for knights > 0 {
@@ -311,14 +299,12 @@ func (b *Board) getKnightMoves() {
 		}
 	}
 
-	b.MoveIdx = moveIdx
+	return moveIdx
 }
 
 // Used by board.generateMoves() to get the legal castling moves
 // This function checks for king is attacked after the move, which is the main logical difference between legal and pseudo-legal
-func (b *Board) getCastlingMoves() {
-	moves := b.Moves
-	moveIdx := b.MoveIdx
+func (b *Board) getCastlingMoves(moves []Move, moveIdx int) int {
 	occupancy := b.Occupancy[EITHER_COLOR]
 
 	// White can castle kingside
@@ -384,7 +370,7 @@ func (b *Board) getCastlingMoves() {
 
 	}
 
-	b.MoveIdx = moveIdx
+	return moveIdx
 }
 
 // Helper function to check if a square is under attack, most useful for checking if king is under attack after a pseudo-legal move
@@ -441,7 +427,7 @@ func (b *Board) isSquareAttacked(sq Square, attackerSide Color) bool {
 }
 
 // Helper function to add a move and increment the counter
-func addMove(moves []Move, start, target Square, code uint8, is_promotion bool, moveIdx uint8) uint8 {
+func addMove(moves []Move, start, target Square, code uint8, is_promotion bool, moveIdx int) int {
 	if is_promotion {
 		for _, piece := range []Piece{KNIGHT, BISHOP, ROOK, QUEEN} {
 			moves[moveIdx].start = start

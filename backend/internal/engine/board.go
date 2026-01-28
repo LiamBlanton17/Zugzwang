@@ -11,7 +11,7 @@ This file contains functionality related to setup, searching and evalution of a 
 */
 
 // Take a FEN string and turn it into a board, ready for the engine to search over it
-func (position FEN) toBoard() (*Board, error) {
+func (position FEN) toBoard(history []FEN) (*Board, error) {
 	board := Board{}
 
 	// The starting FEN position is: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
@@ -80,6 +80,11 @@ func (position FEN) toBoard() (*Board, error) {
 
 	// Setup the Zobrist hash
 	board.Zobrist = board.toZobrist()
+
+	// Setup the board history if needed
+	if history != nil {
+		board.History = make([]ZobristHash, 0, STARTING_HISTORY_LENGTH)
+	}
 
 	return &board, nil
 }
@@ -199,19 +204,17 @@ func (b *Board) getEnemyPieces() BitBoard {
 	return b.Occupancy[b.Turn^1]
 }
 
-func buildGameHistory(history []FEN) (*GameHistory, error) {
-	var gameHistory GameHistory
-
+func (b *Board) buildGameHistory(history []FEN) error {
 	for _, h := range history {
-		b, err := h.toBoard()
+		b, err := h.toBoard(nil)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		gameHistory = append(gameHistory, b.toZobrist())
+		b.History = append(b.History, b.toZobrist())
 	}
 
-	return &gameHistory, nil
+	return nil
 }
 
 type BoardSearchResults struct {
@@ -219,7 +222,7 @@ type BoardSearchResults struct {
 	MoveEvals []MoveEval
 }
 
-func (b *Board) search(history *GameHistory, numberOfMoves int) BoardSearchResults {
+func (b *Board) search(numberOfMoves int) BoardSearchResults {
 	return BoardSearchResults{}
 }
 
@@ -227,13 +230,13 @@ func (b *Board) search(history *GameHistory, numberOfMoves int) BoardSearchResul
 // DO NOT USE THIS IN THE SEARCH OR ENGINE HOTPATH
 // This should only be used for giving the frontend the legal moves in a position
 func (b *Board) generateLegalMoves() []Move {
-	b.generatePseudoLegalMoves()
-	moves := b.Moves
-	legalMoves := make([]Move, 0, len(b.Moves))
+	moves := make([]Move, 0, MAX_NUMBER_OF_MOVES_IN_A_POSITION)
+	legalMoves := make([]Move, 0, MAX_NUMBER_OF_MOVES_IN_A_POSITION)
+	numberOfMoves := b.generatePseudoLegalMoves(moves)
 
-	for i := range b.MoveIdx {
+	for i := range moves[:numberOfMoves] {
 		if b.isMoveLegal(moves[i]) {
-			legalMoves = append(legalMoves, b.Moves[i])
+			legalMoves = append(legalMoves, moves[i])
 		}
 	}
 
@@ -243,30 +246,32 @@ func (b *Board) generateLegalMoves() []Move {
 // This function generates all pseduo legal moves in a position and fills out a pre-allocated move array
 // This is desirable as the engine will check the legality of the move in the search itself
 // This could avoid calling isMoveLegal for 30+ moves if we hit an AB-cutoff early, which is a big optimization
-func (b *Board) generatePseudoLegalMoves() {
-	// Reset board move index
-	b.MoveIdx = 0
+func (b *Board) generatePseudoLegalMoves(moves []Move) int {
+	// Keep track of where we are in the moves array
+	moveIdx := 0
 
 	// Generate pseudo-legal pawn moves
-	b.getPawnMoves()
+	moveIdx = b.getPawnMoves(moves, moveIdx)
 
 	// Generate pseudo-legal knight moves
-	b.getKnightMoves()
+	moveIdx = b.getKnightMoves(moves, moveIdx)
 
 	// Generate pseudo-legal king moves
-	b.getKingMoves()
+	moveIdx = b.getKingMoves(moves, moveIdx)
 
 	// Generate pseudo-legal bishop moves
-	b.getBishopMoves()
+	moveIdx = b.getBishopMoves(moves, moveIdx)
 
 	// Generate pseudo-legal rook moves
-	b.getRookMoves()
+	moveIdx = b.getRookMoves(moves, moveIdx)
 
 	// Generate pseudo-legal queen moves
-	b.getQueenMoves()
+	moveIdx = b.getQueenMoves(moves, moveIdx)
 
 	// Generate pseudo-legal castling moves
-	b.getCastlingMoves()
+	moveIdx = b.getCastlingMoves(moves, moveIdx)
+
+	return moveIdx
 }
 
 // This function unmakes a move, in-place, on a board

@@ -22,19 +22,13 @@ func Evalute(position FEN, history []FEN, numberOfMoves int) (*EvaluateResponse,
 
 	// Build the board from the position
 	// This can fail if position is not a valid FEN string
-	board, err := position.toBoard()
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the game history from the array of fens
-	gameHistory, err := buildGameHistory(history)
+	board, err := position.toBoard(history)
 	if err != nil {
 		return nil, err
 	}
 
 	// Search the board and get the results
-	results := board.search(gameHistory, numberOfMoves)
+	results := board.search(numberOfMoves)
 
 	// Stop the time
 	end := time.Now()
