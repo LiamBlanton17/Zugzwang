@@ -4,27 +4,22 @@ package engine
 This file contains all the code related to searching
 */
 
-// Negamax is the main recursive function used to search
-type NegamaxResult struct {
-	eval  Eval
+// Simple negamax function for checking Perft, not actually used in searching and evalution, just testing
+type PerftNegamaxResult struct {
 	nodes int
 }
 
-func (b *Board) negamax(depth uint8, moveStack [][]Move) NegamaxResult {
+func (b *Board) perftNegamax(depth uint8, moveStack [][]Move) PerftNegamaxResult {
 
 	// Reaching a terminal condition
 	if depth == 0 {
-		return NegamaxResult{
-			eval:  Eval(0),
+		return PerftNegamaxResult{
 			nodes: 1,
 		}
 	}
 
-	eval := MIN_EVAL
-	nodes := 0
-
 	// Generate the pseudo legal moves to play, populating this depths move in the movestack
-	// TODO: Sort these moves
+	nodes := 0
 	moves := moveStack[depth]
 	numberOfMoves := b.generatePseudoLegalMoves(moves)
 
@@ -34,14 +29,12 @@ func (b *Board) negamax(depth uint8, moveStack [][]Move) NegamaxResult {
 			b.unMakeMove(unmake)
 			continue
 		}
-		result := b.negamax(depth-1, moveStack)
-		eval = max(eval, -result.eval)
+		result := b.perftNegamax(depth-1, moveStack)
 		nodes += result.nodes
 		b.unMakeMove(unmake)
 	}
 
-	return NegamaxResult{
-		eval:  eval,
+	return PerftNegamaxResult{
 		nodes: nodes,
 	}
 }
