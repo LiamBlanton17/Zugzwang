@@ -686,7 +686,7 @@ func (b *Board) getPieceAt(sq Square) Piece {
 // This function prints the board to stdout, useful for debugging or CLI
 func (b *Board) print() {
 	for i := 7; i >= 0; i-- {
-		for j := 7; j >= 0; j-- {
+		for j := range 8 {
 			sq := Square(i*8 + j)
 			piece := b.getPieceAt(sq)
 			color := WHITE

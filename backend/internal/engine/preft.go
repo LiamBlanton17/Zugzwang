@@ -12,6 +12,9 @@ func Preft() {
 	// The depth in ply to test too
 	const TEST_DEPTH = 5
 
+	// Init the engine
+	InitEngine()
+
 	// Allocate the moveStack
 	moveStack := make([][]Move, TEST_DEPTH+1)
 	for i := range moveStack {

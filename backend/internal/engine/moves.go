@@ -525,7 +525,7 @@ func GenerateRookMask(sq Square) BitBoard {
 	// Go down
 	// Ignore last row
 	j = Square(sq - 8)
-	for j >= 8 {
+	for j >= 8 && sq >= 8 {
 		mask |= j.bitBoardPosition()
 		j -= 8
 	}
@@ -543,7 +543,7 @@ func GenerateRookMask(sq Square) BitBoard {
 	// Go left (checking columns to prevent wrap arround)
 	// Also, ignore the final column
 	j = Square(sq - 1)
-	if j%8 != 7 { // check that is hasn't wrapped around
+	if j%8 != 7 && sq >= 1 { // check that is hasn't wrapped around
 		for j%8 > 0 {
 			mask |= j.bitBoardPosition()
 			j -= 1
@@ -691,7 +691,7 @@ func GenerateBishopMask(sq Square) BitBoard {
 	// Go down right
 	// Ignore last column/row
 	j = Square(sq - 7)
-	if j%8 != 0 { // check that is hasn't wrapped around
+	if j%8 != 0 && sq >= 7 { // check that is hasn't wrapped around
 
 		// Check that we are not final row and not final column
 		for j >= 8 && j%8 < 7 {
@@ -703,7 +703,7 @@ func GenerateBishopMask(sq Square) BitBoard {
 	// Go down left
 	// Ignore last column/row
 	j = Square(sq - 9)
-	if j%8 != 7 { // check that is hasn't wrapped around
+	if j%8 != 7 && sq >= 9 { // check that is hasn't wrapped around
 
 		// Check that we are not final row and not final column
 		for j >= 8 && j%8 > 0 {
