@@ -11,6 +11,8 @@ This file contains functionality related to setup, searching and evalution of a 
 */
 
 // Take a FEN string and turn it into a board, ready for the engine to search over it
+// [BUG] FEN logic does not handle castling rights correct, as KQ is valid, but will result in no rights
+// [BUG] Should allow KQ, but for now just put in KQ-- and it works
 func (position FEN) toBoard(history []FEN) (*Board, error) {
 	board := Board{}
 
@@ -45,15 +47,16 @@ func (position FEN) toBoard(history []FEN) (*Board, error) {
 	}
 
 	// Setup castling
-	if len(castling) != 4 {
-		return nil, fmt.Errorf("Invalid FEN string; Castling rights string is not of length 4")
-	}
-	// This is more condensed than 4 if statements, but it could accept invalid FENs
-	// KQkq is the correct order, but this would accept them out of order, like kQKq
-	// This is mostly fine. Maybe in future can just be verbose and check each character one by one
-	for s, v := range map[rune]uint8{CHAR_WK: CASTLE_WK, CHAR_WQ: CASTLE_WQ, CHAR_BK: CASTLE_BK, CHAR_BQ: CASTLE_BQ} {
-		if strings.Contains(castling, string(s)) {
-			board.CR |= v
+	// If not of length 4, then no castling rights
+	board.CR = 0
+	if len(castling) == 4 {
+		// This is more condensed than 4 if statements, but it could accept invalid FENs
+		// KQkq is the correct order, but this would accept them out of order, like kQKq
+		// This is mostly fine. Maybe in future can just be verbose and check each character one by one
+		for s, v := range map[rune]uint8{CHAR_WK: CASTLE_WK, CHAR_WQ: CASTLE_WQ, CHAR_BK: CASTLE_BK, CHAR_BQ: CASTLE_BQ} {
+			if strings.Contains(castling, string(s)) {
+				board.CR |= v
+			}
 		}
 	}
 
@@ -424,7 +427,6 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 }
 
 // This function makes a move, in-place, on a board, and returns if that move was legal or not
-// ERROR: Promotion does not capture the enemy piece, and then will not undo it
 func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 
 	// Create an unmake entry somewhere

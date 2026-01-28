@@ -163,6 +163,26 @@ func (p Piece) toString(c Color) string {
 	return "-"
 }
 
+// Converts a Move to a string - allways sets the promotion piece to WHITE
+func (m Move) toString() string {
+	start := m.start.toString()
+	target := m.target.toString()
+	promotion := m.promotion.toString(WHITE)
+	codeStr := "MOVE_CODE_NONE"
+	switch m.code {
+	case MOVE_CODE_CAPTURE:
+		codeStr = "MOVE_CODE_CAPTURE"
+	case MOVE_CODE_EN_PASSANT:
+		codeStr = "MOVE_CODE_EN_PASSANT"
+	case MOVE_CODE_DOUBLE_PAWN_PUSH:
+		codeStr = "MOVE_CODE_DOUBLE_PAWN_PUSH"
+	case MOVE_CODE_CASTLE:
+		codeStr = "MOVE_CODE_CASTLE"
+	}
+
+	return fmt.Sprintf("(%v to %v) (promotion: %v) (code: %v)", start, target, promotion, codeStr)
+}
+
 // Helper function to get the index on a bitboard given some square number
 func (s Square) bitBoardPosition() BitBoard {
 	return BitBoard(uint64(1) << s)
