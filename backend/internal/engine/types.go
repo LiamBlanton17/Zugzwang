@@ -77,6 +77,17 @@ const MAX_NUMBER_OF_MOVES_IN_A_POSITION = 256
 // This can be tweaked if needed, but shouldn't have too much of an effect on the performance
 const STARTING_HISTORY_LENGTH = 50
 
+// Defining the game stages
+// These are used for helping the engine make more accruate evaluations of the position
+const (
+	OPENING uint8 = iota
+	MIDDLEGAME
+	ENDGAME
+	MATING
+	BEING_MATED
+	NUM_GAME_STATES
+)
+
 // Aliasing Square to unit8 for better type safety
 // Uint8 has a max value of 255, enough to store all 64 possible squares in it
 // 255 is chosen to be the "NULL" value for the square
@@ -219,4 +230,8 @@ type Board struct {
 	// This stores the square of the king for both sides
 	// Keep this updated, makes finding the king more efficient during move generation
 	KingSquare [NUM_COLORS]Square
+
+	// This stores the stage of the game the board is in
+	// Update this depending on certain factors (like pieces left or number of moves, etc)
+	GameState uint8
 }

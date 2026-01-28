@@ -26,7 +26,7 @@ func TestGame() {
 
 	// Setup the starting board
 	board, _ := STARTING_POSITION_FEN.toBoard(nil)
-	const depth = uint8(10)
+	const depth = uint8(8)
 
 	for {
 
@@ -39,6 +39,11 @@ func TestGame() {
 		if len(moveResults) == 0 {
 			fmt.Println("Game Over.")
 			return
+		}
+
+		for _, mr := range moveResults {
+			fmt.Print(mr.move.toString() + ": ")
+			fmt.Println(mr.eval)
 		}
 
 		// Sort and get best result

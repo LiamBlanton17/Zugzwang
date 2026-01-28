@@ -14,23 +14,30 @@ var DUMB_CENTIPAWN = [NUM_PIECES]Eval{
 	KING:   50000,
 }
 
-// "Dumb" material eval of the poisiton
-// This eval does not consider what square the piece is on but just its flat material worth
-func (b *Board) dumbMaterialEval() Eval {
+// Piece square table evaluation of the position
+func (b *Board) pstEval() Eval {
 	eval := Eval(0)
 
-	for s := range NUM_SQUARES {
-		sq := Square(s)
-		piece := b.getPieceAt(sq)
-		if piece == NO_PIECE {
-			continue
+	for p := PAWN; p <= KING; p++ {
+		pieceValue := DUMB_CENTIPAWN[p]
+
+		// 1. Add White Pieces
+		whiteBitboard := b.Pieces[WHITE][p]
+		for whiteBitboard != 0 {
+			sq := whiteBitboard.popSquare()
+			eval += PST[OPENING][WHITE][p][sq] + pieceValue
 		}
 
-		if sq.bitBoardPosition()&b.Occupancy[WHITE] == 0 {
-			eval += DUMB_CENTIPAWN[piece]
-		} else {
-			eval -= DUMB_CENTIPAWN[piece]
+		// 2. Subtract Black Pieces
+		blackBitboard := b.Pieces[BLACK][p]
+		for blackBitboard != 0 {
+			sq := blackBitboard.popSquare()
+			eval -= (PST[OPENING][BLACK][p][sq] + pieceValue)
 		}
+	}
+
+	if b.Turn == BLACK {
+		return -eval
 	}
 
 	return eval
@@ -38,5 +45,5 @@ func (b *Board) dumbMaterialEval() Eval {
 
 // Main evaluation function, to be called by the searching algorithm
 func (b *Board) eval() Eval {
-	return b.dumbMaterialEval()
+	return b.pstEval()
 }

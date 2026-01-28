@@ -117,7 +117,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 		legalMovesFound = true
 		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack)
 		b.unMakeMove(unmake)
-		resultEval := result.best.eval
+		resultEval := -result.best.eval
 		nodes += result.nodes
 		if resultEval > bestEval {
 			bestEval = resultEval
