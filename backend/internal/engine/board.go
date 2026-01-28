@@ -270,16 +270,17 @@ func (b *Board) generatePseudoLegalMoves() {
 }
 
 // This function unmakes a move, in-place, on a board
-// TODO: Update Zobrist hash
 func (b *Board) unMakeMove(unmove MoveUndo) {
 
-	// Pop a zobrist entry off the history
-	if len(b.History) > 0 {
-		b.History = b.History[:len(b.History)-1]
-	}
+	// Pop a zobrist entry off the history and restore it
+	historyLength := len(b.History)
+	b.Zobrist = b.History[historyLength-1]
+	b.History = b.History[:historyLength-1]
 
 	// Roll back the full move counter
-	b.FMC--
+	if b.Turn == WHITE {
+		b.FMC--
+	}
 
 	// Reset the half move couner
 	b.HMC = unmove.hmc
@@ -289,6 +290,9 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 
 	// Reset the color
 	b.Turn ^= 1
+
+	// Restore castling rights
+	b.CR = unmove.cr
 
 	// Decode move and board
 	color := b.Turn
@@ -308,7 +312,8 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 	b.Occupancy[color].clear(targetBitBoard)
 	b.Pieces[color][targetPiece].set(startBitBoard)
 	b.Occupancy[color].set(startBitBoard)
-	b.MailBox[target] = captured
+	b.MailBox[start] = targetPiece
+	b.MailBox[target] = NO_PIECE
 
 	// If piece captured was not NO_PIECE update those bit boards
 	if captured != NO_PIECE {
@@ -324,11 +329,71 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 		}
 		b.Pieces[oppColor][captured].set(capturedSq.bitBoardPosition())
 		b.Occupancy[oppColor].set(capturedSq.bitBoardPosition())
+		b.MailBox[capturedSq] = captured
+	}
+
+	// Handle promotion by downgrading back to a pawn
+	if code == MOVE_CODE_PROMOTION {
+		b.Pieces[color][targetPiece].clear(startBitBoard)
+		b.Pieces[color][PAWN].set(startBitBoard)
+		b.MailBox[start] = PAWN
 	}
 
 	// Handle castling
+	// Castling rights are already restored above, this is for moving the rook back into the corner
 	if code == MOVE_CODE_CASTLE {
+		// White Kingside
+		if target == G1 {
+			h1BB := H1.bitBoardPosition()
+			f1BB := F1.bitBoardPosition()
+			b.Pieces[WHITE][ROOK].clear(f1BB)
+			b.Occupancy[WHITE].clear(f1BB)
+			b.Pieces[WHITE][ROOK].set(h1BB)
+			b.Occupancy[WHITE].set(h1BB)
+			b.MailBox[F1] = NO_PIECE
+			b.MailBox[H1] = ROOK
+		}
 
+		// White Queenside
+		if target == C1 {
+			a1BB := A1.bitBoardPosition()
+			d1BB := D1.bitBoardPosition()
+			b.Pieces[WHITE][ROOK].clear(d1BB)
+			b.Occupancy[WHITE].clear(d1BB)
+			b.Pieces[WHITE][ROOK].set(a1BB)
+			b.Occupancy[WHITE].set(a1BB)
+			b.MailBox[D1] = NO_PIECE
+			b.MailBox[A1] = ROOK
+		}
+
+		// Black Kingside
+		if target == G8 {
+			h8BB := H8.bitBoardPosition()
+			f8BB := F8.bitBoardPosition()
+			b.Pieces[BLACK][ROOK].clear(f8BB)
+			b.Occupancy[BLACK].clear(f8BB)
+			b.Pieces[BLACK][ROOK].set(h8BB)
+			b.Occupancy[BLACK].set(h8BB)
+			b.MailBox[F8] = NO_PIECE
+			b.MailBox[H8] = ROOK
+		}
+
+		// Black Kingside
+		if target == C8 {
+			a8BB := A8.bitBoardPosition()
+			d8BB := D8.bitBoardPosition()
+			b.Pieces[BLACK][ROOK].clear(d8BB)
+			b.Occupancy[BLACK].clear(d8BB)
+			b.Pieces[BLACK][ROOK].set(a8BB)
+			b.Occupancy[BLACK].set(a8BB)
+			b.MailBox[D8] = NO_PIECE
+			b.MailBox[A8] = ROOK
+		}
+	}
+
+	// Update king square
+	if targetPiece == KING {
+		b.KingSquare[color] = start
 	}
 
 	// Update either color occupancy
@@ -336,11 +401,15 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 }
 
 // This function makes a move, in-place, on a board, and returns if that move was legal or not
-// TODO: Update Zobrist hash
 func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 
 	// Create an unmake entry somewhere
-	var unmake MoveUndo
+	unmake := MoveUndo{
+		hmc:      b.HMC,
+		cr:       b.CR,
+		eps:      b.EPS,
+		captured: NO_PIECE,
+	}
 
 	// Add this boards Zobrist hash to the history and update clocks
 	b.History = append(b.History, b.Zobrist)
@@ -360,6 +429,14 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 	oppColor := color ^ 1
 	eps := b.EPS
 
+	// Put decoded move information into the unmake struct
+	unmake.start = start
+	unmake.target = target
+	unmake.code = code
+
+	// Hash out enpassent square
+	b.Zobrist ^= ENPASSENT_ZOBRIST[b.EPS%8]
+
 	// Reset enpassent (will get reset later if needed)
 	b.EPS = NO_SQUARE
 
@@ -370,10 +447,16 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 	if code == MOVE_CODE_CAPTURE {
 		targetPiece := b.getPieceAt(target)
 
+		// Put the captured piece into the unmake struct
+		unmake.captured = targetPiece
+
 		// Clear enemy piece and reset half move clock
 		b.Pieces[oppColor][targetPiece].clear(targetBitBoard)
 		b.Occupancy[oppColor].clear(targetBitBoard)
 		b.HMC = 0
+
+		// Hash out enempy piece
+		b.Zobrist ^= PIECE_ZOBRIST[oppColor][targetPiece][target]
 	}
 
 	// Handle the moving piece bitboards
@@ -381,6 +464,10 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 	b.Occupancy[color].clear(startBitBoard)
 	b.Pieces[color][startPiece].set(targetBitBoard)
 	b.Occupancy[color].set(targetBitBoard)
+
+	// Hash out old piece and in new piece
+	b.Zobrist ^= PIECE_ZOBRIST[color][startPiece][start]
+	b.Zobrist ^= PIECE_ZOBRIST[color][startPiece][target]
 
 	// Handle the piece mailbox
 	b.MailBox[start] = NO_PIECE
@@ -412,6 +499,9 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.Pieces[oppColor][PAWN].clear(epsBitBoard)
 			b.Occupancy[oppColor].clear(epsBitBoard)
 			b.MailBox[eps] = NO_PIECE
+
+			// Hash out captured enemy pawn
+			b.Zobrist ^= PIECE_ZOBRIST[oppColor][PAWN][eps]
 		}
 
 		// Handle pawn promoting
@@ -419,8 +509,20 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.Pieces[color][PAWN].clear(targetBitBoard)
 			b.Pieces[color][promotion].set(targetBitBoard)
 			b.MailBox[target] = promotion
+
+			// Hash out pawn and in promoted piece
+			b.Zobrist ^= PIECE_ZOBRIST[color][PAWN][target]
+			b.Zobrist ^= PIECE_ZOBRIST[color][promotion][target]
 		}
 	}
+
+	// Hash in enpassent square (if not none)
+	if b.EPS != NO_SQUARE {
+		b.Zobrist ^= ENPASSENT_ZOBRIST[b.EPS%8]
+	}
+
+	// Hash out castling rights
+	b.Zobrist ^= CASTLING_ZOBRIST[b.CR]
 
 	// Handle castling (moving rook and updating castling rights)
 	if code == MOVE_CODE_CASTLE {
@@ -528,9 +630,15 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 		}
 	}
 
+	// Hash in castling rights
+	b.Zobrist ^= CASTLING_ZOBRIST[b.CR]
+
 	// Update board turn and update either color occupancy
 	b.Turn ^= 1
 	b.Occupancy[EITHER_COLOR] = (b.Occupancy[WHITE] | b.Occupancy[BLACK])
+
+	// Hash in turn
+	b.Zobrist ^= BLACK_TO_MOVE_ZOBRIST
 
 	// Verify the board start is legal
 	// Make sure the king is not attacked
