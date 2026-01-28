@@ -66,6 +66,9 @@ const (
 	MIN_EVAL = Eval(-2147483648)
 )
 
+// Define the max ply the engine will search too
+const MAX_PLY = 64
+
 // Defining the max number of moves in a position
 // This comes from lichess official study that it is 218, but setting to 256 is fine
 const MAX_NUMBER_OF_MOVES_IN_A_POSITION = 256

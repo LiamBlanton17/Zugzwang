@@ -60,7 +60,7 @@ func Perft() {
 
 	for _, test := range tests {
 		// Allocate the moveStack
-		moveStack := make([][]Move, test.depth+1)
+		moveStack := make([][]Move, MAX_PLY)
 		for i := range moveStack {
 			moveStack[i] = make([]Move, 256)
 		}
@@ -74,7 +74,7 @@ func Perft() {
 
 		// Search
 		start := time.Now()
-		result := board.perftNegamax(test.depth, moveStack)
+		result := board.rootSearch(test.depth, moveStack, false)
 		searchTime := time.Since(start)
 		mnps := (float64(result.nodes) / searchTime.Seconds()) / 1000000
 
