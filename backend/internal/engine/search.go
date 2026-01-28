@@ -32,6 +32,8 @@ func (b *Board) rootSearch(depth uint8, moveStack [][]Move, multithread bool) Ro
 	// Generate the pseudo legal moves to play, populating this depths move in the movestack
 	moves := moveStack[ply]
 	numberOfMoves := b.generatePseudoLegalMoves(moves)
+	results := make([]MoveEval, 0, numberOfMoves)
+	legalMovesFound := false
 	for _, move := range moves[:numberOfMoves] {
 
 		// Make the move and see if it was legal
@@ -42,9 +44,14 @@ func (b *Board) rootSearch(depth uint8, moveStack [][]Move, multithread bool) Ro
 		}
 
 		// Search the new position and get the results
+		legalMovesFound = true
 		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack)
 		b.unMakeMove(unmake)
 		resultEval := -result.best.eval
+		results = append(results, MoveEval{
+			eval: resultEval,
+			move: move,
+		})
 		nodes += result.nodes
 		if resultEval > bestEval {
 			bestEval = resultEval
@@ -61,7 +68,7 @@ func (b *Board) rootSearch(depth uint8, moveStack [][]Move, multithread bool) Ro
 	}
 
 	// Handle checkmate/stalemate
-	if numberOfMoves == 0 {
+	if !legalMovesFound {
 		// If not in check, then stalement, else MIN_EVAL is correct
 		if !b.isInCheck(b.Turn) {
 			bestEval = 0
@@ -70,6 +77,7 @@ func (b *Board) rootSearch(depth uint8, moveStack [][]Move, multithread bool) Ro
 
 	return RootSearchResult{
 		nodes: nodes,
+		moves: results,
 	}
 }
 
@@ -95,6 +103,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 	// Generate the pseudo legal moves to play, populating this plys move in the movestack
 	moves := moveStack[ply]
 	numberOfMoves := b.generatePseudoLegalMoves(moves)
+	legalMovesFound := false
 	for _, move := range moves[:numberOfMoves] {
 
 		// Make the move and see if it was legal
@@ -105,6 +114,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 		}
 
 		// Search the new position and get the results
+		legalMovesFound = true
 		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack)
 		b.unMakeMove(unmake)
 		resultEval := result.best.eval
@@ -124,7 +134,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 	}
 
 	// Handle checkmate/stalemate
-	if numberOfMoves == 0 {
+	if !legalMovesFound {
 		// If not in check, then stalement
 		if !b.isInCheck(b.Turn) {
 			bestEval = 0
