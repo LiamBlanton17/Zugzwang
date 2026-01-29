@@ -183,6 +183,27 @@ func (m Move) toString() string {
 	return fmt.Sprintf("(%v to %v) (promotion: %v) (code: %v)", start, target, promotion, codeStr)
 }
 
+// Get the move ordering score of the Move -- for move ordering
+func (m *Move) orderScore() int {
+
+	// Check promotion
+	if m.promotion != NO_PIECE {
+		return 11
+	}
+
+	// Check move code
+	switch m.code {
+	case MOVE_CODE_CAPTURE:
+		return 10
+	case MOVE_CODE_EN_PASSANT:
+		return 9
+	case MOVE_CODE_CASTLE:
+		return 8
+	}
+
+	return 0
+}
+
 // Helper function to get the index on a bitboard given some square number
 func (s Square) bitBoardPosition() BitBoard {
 	return BitBoard(uint64(1) << s)

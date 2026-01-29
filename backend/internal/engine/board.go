@@ -1,7 +1,9 @@
 package engine
 
 import (
+	"cmp"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -290,6 +292,10 @@ func (b *Board) generatePseudoLegalMoves(moves []Move) int {
 
 	// Generate pseudo-legal castling moves
 	moveIdx = b.getCastlingMoves(moves, moveIdx)
+
+	slices.SortFunc(moves[:moveIdx], func(ma, mb Move) int {
+		return cmp.Compare(mb.orderScore(), ma.orderScore())
+	})
 
 	return moveIdx
 }

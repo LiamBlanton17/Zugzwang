@@ -13,7 +13,8 @@ Until mate.
 */
 
 func TestGame() {
-	fmt.Println("Starting test game.\n")
+	fmt.Println("Starting test game.")
+	fmt.Println()
 
 	// Init the engine
 	InitEngine()
@@ -26,7 +27,7 @@ func TestGame() {
 
 	// Setup the starting board
 	board, _ := STARTING_POSITION_FEN.toBoard(nil)
-	const depth = uint8(6)
+	const depth = uint8(7)
 
 	for {
 
@@ -41,20 +42,23 @@ func TestGame() {
 			return
 		}
 
-		for _, mr := range moveResults {
-			fmt.Print(mr.move.toString() + ": ")
-			fmt.Println(mr.eval)
-		}
-
 		// Sort and get best result
 		slices.SortFunc(moveResults, func(a, b MoveEval) int {
 			return cmp.Compare(b.eval, a.eval)
 		})
+
+		// Eval needs to be context aware
 		bestEval := moveResults[0].eval
+		if board.Turn == BLACK {
+			bestEval *= -1
+		}
 		bestMove := moveResults[0].move
-		fmt.Printf("Best move: %v with eval %.3f\n\n\n", bestMove.toString(), float32(bestEval)/100)
+		fmt.Printf("Best move: %v with eval %.3f\n", bestMove.toString(), float32(bestEval)/100)
+		fmt.Printf("The engine searched: %d nodes\n\n\n", result.nodes)
 
 		// Make the move
 		board.makeMove(bestMove)
+
+		break
 	}
 }

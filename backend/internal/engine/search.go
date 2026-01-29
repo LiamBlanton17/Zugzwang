@@ -92,7 +92,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 
 	// If at base condition, quiescence search
 	if depth == 0 {
-		return b.quiescence(ply)
+		return b.quiescence(ply, alpha, beta, moveStack)
 	}
 
 	// Setup the search
@@ -156,22 +156,87 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 // quiescence is the final search for a "quiet" position the engine takes, after reaching the base condition of abnegamax
 // A quiet position is one without any captures
 // todo: should be upgraded to check for checks as well
-func (b *Board) quiescence(ply uint8) SearchResult {
+func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) SearchResult {
 
-	// For now quiescence search will just evaluate
-	// todo: actually quiescence search lol
-	eval := b.eval()
+	// b.eval is absolute: negative is good for black and psotive is good for white
+	// however, quiescenece and negamax need to return "context aware" evals
+	// as such, we need to negate the eval if the board we are evaluating is black
+	// negamax returns the score as relation to positive being good for the active play
+	// so we must flip blacks eval sign
+	// if no captures found, at end of quiescence search and should evaluate
+	bestEval := b.eval()
+	if b.Turn == BLACK {
+		bestEval *= -1
+	}
+
+	// check if that caused a soft-beta cutoff
+	if bestEval >= beta {
+		return SearchResult{
+			nodes: 1,
+			best:  MoveEval{eval: bestEval},
+		}
+	}
+
+	// update alpha if needed
+	if bestEval > alpha {
+		alpha = bestEval
+	}
 
 	// check ply, if it exceeds or equals MAX_PLY then just evalute
+	// this is just a safety net against really weird conditions, very unlikely to happen
+	nodes := 1
+	bestMove := Move{}
 	if ply >= MAX_PLY {
+		return SearchResult{
+			nodes: 1,
+			best: MoveEval{
+				move: bestMove,
+				eval: bestEval,
+			},
+		}
+	}
 
+	// For now quiescence search will just evaluate
+	moves := moveStack[ply]
+	numberOfMoves := b.generatePseudoLegalMoves(moves)
+	for _, move := range moves[:numberOfMoves] {
+
+		// Make sure the move was a capture
+		if move.code != MOVE_CODE_CAPTURE && move.code != MOVE_CODE_EN_PASSANT {
+			continue
+		}
+
+		// Make the move and see if it was legal
+		unmake, isLegal := b.makeMove(move)
+		if !isLegal {
+			b.unMakeMove(unmake)
+			continue
+		}
+
+		// Search the new position and get the results
+		result := b.quiescence(ply+1, -beta, -alpha, moveStack)
+		b.unMakeMove(unmake)
+		resultEval := -result.best.eval
+		nodes += result.nodes
+		if resultEval > bestEval {
+			bestEval = resultEval
+			bestMove = move
+			if resultEval > alpha {
+				alpha = resultEval
+			}
+		}
+
+		// Failed soft on beta-cutoff, exit the search
+		if resultEval >= beta {
+			break
+		}
 	}
 
 	return SearchResult{
-		nodes: 1,
+		nodes: nodes,
 		best: MoveEval{
-			move: Move{},
-			eval: eval,
+			move: bestMove,
+			eval: bestEval,
 		},
 	}
 }
