@@ -438,6 +438,11 @@ func (b *Board) isSquareAttacked(sq Square, attackerSide Color) bool {
 	return false
 }
 
+// Helper function to check if the king is in check
+func (b *Board) isInCheck(sideToCheck Color) bool {
+	return b.isSquareAttacked(b.KingSquare[sideToCheck], sideToCheck^1)
+}
+
 // Helper function to add a move and increment the counter
 func addMove(moves []Move, start, target Square, code uint8, isPromotion bool, moveIdx int) int {
 	if isPromotion {

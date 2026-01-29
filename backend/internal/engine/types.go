@@ -60,11 +60,14 @@ type MoveEval struct {
 	eval Eval
 }
 
-// Defining mins and maxes for the eval type, this is just the same as the max for a 32 bit int
+// Defining mins and maxes for the eval type, this is close to max for 32-bit int but not there (to avoid overflow issues)
 const (
-	MAX_EVAL = Eval(2147483647)
-	MIN_EVAL = Eval(-2147483648)
+	MAX_EVAL = Eval(2000000000)
+	MIN_EVAL = Eval(-2000000000)
 )
+
+// Define the max ply the engine will search too
+const MAX_PLY = 64
 
 // Defining the max number of moves in a position
 // This comes from lichess official study that it is 218, but setting to 256 is fine
@@ -73,6 +76,17 @@ const MAX_NUMBER_OF_MOVES_IN_A_POSITION = 256
 // Defining the starting history length
 // This can be tweaked if needed, but shouldn't have too much of an effect on the performance
 const STARTING_HISTORY_LENGTH = 50
+
+// Defining the game stages
+// These are used for helping the engine make more accruate evaluations of the position
+const (
+	OPENING uint8 = iota
+	MIDDLEGAME
+	ENDGAME
+	MATING
+	BEING_MATED
+	NUM_GAME_STATES
+)
 
 // Aliasing Square to unit8 for better type safety
 // Uint8 has a max value of 255, enough to store all 64 possible squares in it
@@ -216,4 +230,8 @@ type Board struct {
 	// This stores the square of the king for both sides
 	// Keep this updated, makes finding the king more efficient during move generation
 	KingSquare [NUM_COLORS]Square
+
+	// This stores the stage of the game the board is in
+	// Update this depending on certain factors (like pieces left or number of moves, etc)
+	GameState uint8
 }

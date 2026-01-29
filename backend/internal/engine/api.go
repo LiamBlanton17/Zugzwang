@@ -54,4 +54,7 @@ func InitEngine() {
 	initKingMoves()
 	initMagicRook()
 	initMagicBishop()
+
+	// Setup PSTs
+	initPST()
 }
