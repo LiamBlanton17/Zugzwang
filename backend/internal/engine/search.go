@@ -1,5 +1,7 @@
 package engine
 
+import "fmt"
+
 /*
 This file contains all the code related to searching
 */
@@ -52,6 +54,7 @@ func (b *Board) rootSearch(depth uint8, moveStack [][]Move, multithread bool) Ro
 			eval: resultEval,
 			move: move,
 		})
+		fmt.Printf("Evaluted %v: best score %d\n", move.toString(), resultEval)
 		nodes += result.nodes
 		if resultEval > bestEval {
 			bestEval = resultEval

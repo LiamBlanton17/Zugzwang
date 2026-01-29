@@ -82,75 +82,92 @@ var pstBishopOpening = [NUM_SQUARES]Eval{
 }
 
 // Priortize centrality above all else
+// Also bishop overall value increases
 var pstBishopEndgame = [NUM_SQUARES]Eval{
-	215, 245, 265, 285, 285, 265, 245, 215,
+	220, 245, 265, 285, 285, 265, 245, 220,
 	245, 270, 295, 320, 320, 295, 270, 245,
 	265, 295, 325, 340, 340, 325, 295, 250,
 	285, 320, 340, 355, 355, 340, 320, 285,
 	285, 320, 340, 355, 355, 340, 320, 285,
 	265, 295, 325, 340, 340, 325, 295, 250,
 	245, 270, 295, 320, 320, 295, 270, 245,
-	215, 245, 265, 285, 285, 265, 245, 215,
+	220, 245, 265, 285, 285, 265, 245, 220,
 }
 
 // ROOKS
-var tableRook = [NUM_SQUARES]Eval{
-	440, 460, 500, 515, 515, 500, 460, 440,
-	440, 460, 500, 515, 515, 500, 460, 440,
-	440, 460, 500, 515, 515, 500, 460, 440,
-	440, 460, 500, 515, 515, 500, 460, 440,
-	440, 460, 500, 515, 515, 500, 460, 440,
-	440, 460, 500, 515, 515, 500, 460, 440,
-	470, 490, 530, 545, 545, 530, 490, 470,
-	460, 480, 520, 535, 535, 520, 480, 460,
+// Priortize central movement, don't encourage rook lifts, but 7/8th rank do get bonuses
+var pstRookOpening = [NUM_SQUARES]Eval{
+	470, 490, 510, 520, 520, 515, 480, 460,
+	440, 440, 500, 505, 505, 500, 440, 440,
+	440, 440, 500, 505, 505, 500, 440, 440,
+	440, 440, 500, 505, 505, 500, 440, 440,
+	440, 440, 500, 505, 505, 500, 440, 440,
+	440, 440, 500, 505, 505, 500, 440, 440,
+	490, 490, 510, 515, 515, 510, 490, 490,
+	490, 490, 510, 515, 515, 510, 490, 490,
+}
+
+// Slightly priortize centrality, with bonuses for 7/8th rank
+// Also rooks overall value increases
+var pstRookEndgame = [NUM_SQUARES]Eval{
+	490, 500, 510, 520, 520, 510, 500, 490,
+	500, 515, 530, 540, 540, 530, 515, 500,
+	510, 530, 540, 550, 550, 540, 530, 510,
+	520, 540, 550, 555, 555, 550, 540, 520,
+	520, 540, 550, 555, 555, 550, 540, 520,
+	510, 530, 540, 550, 550, 540, 530, 510,
+	535, 550, 565, 570, 570, 565, 550, 535,
+	515, 525, 535, 540, 540, 535, 525, 515,
 }
 
 // QUEENS
-var tableQueen = [NUM_SQUARES]Eval{
-	800, 825, 860, 880, 880, 860, 825, 800,
-	825, 860, 880, 900, 900, 880, 860, 825,
-	860, 880, 900, 925, 925, 900, 880, 860,
-	880, 900, 925, 950, 950, 925, 900, 880,
-	880, 900, 925, 950, 950, 925, 900, 880,
-	860, 880, 900, 925, 925, 900, 880, 860,
-	825, 860, 880, 900, 900, 880, 860, 825,
-	800, 825, 860, 880, 880, 860, 825, 800,
+// Prioritize centrality, but not overzelous development
+var pstQueenOpening = [NUM_SQUARES]Eval{
+	850, 880, 900, 900, 880, 880, 880, 850,
+	855, 885, 905, 905, 900, 885, 885, 855,
+	870, 900, 910, 910, 910, 910, 900, 870,
+	875, 905, 915, 915, 915, 915, 905, 875,
+	875, 905, 915, 915, 915, 915, 905, 875,
+	875, 905, 915, 915, 915, 915, 905, 875,
+	865, 895, 900, 900, 900, 900, 895, 865,
+	850, 880, 885, 885, 885, 885, 880, 850,
 }
 
-// KINGS: Safety
-var tableKingSafety = [NUM_SQUARES]Eval{
-	350, 350, 300, 275, 275, 300, 350, 350,
-	325, 325, 290, 290, 290, 290, 325, 325,
-	295, 290, 250, 250, 250, 250, 290, 295,
-	290, 250, 200, 200, 200, 200, 250, 290,
-	250, 200, 150, 150, 150, 150, 200, 250,
-	200, 150, 125, 125, 125, 125, 150, 200,
-	150, 125, 100, 100, 100, 100, 125, 150,
-	125, 100, 100, 100, 100, 100, 100, 125,
+// Priortize centrality above all else
+var pstQueenEndgame = [NUM_SQUARES]Eval{
+	865, 885, 890, 915, 915, 890, 885, 865,
+	885, 905, 920, 930, 930, 920, 905, 885,
+	890, 920, 935, 945, 945, 935, 920, 890,
+	915, 930, 945, 950, 950, 945, 930, 915,
+	915, 930, 945, 950, 950, 945, 930, 915,
+	890, 920, 935, 945, 945, 935, 920, 890,
+	885, 905, 920, 930, 930, 920, 905, 885,
+	865, 885, 890, 915, 915, 890, 885, 865,
 }
 
-// KINGS: Active
-var tableKingActive = [NUM_SQUARES]Eval{
-	-50, -30, -30, -30, -30, -30, -30, -50,
-	-30, -30, 0, 0, 0, 0, -30, -30,
-	-30, -10, 20, 30, 30, 20, -10, -30,
-	-30, -10, 30, 40, 40, 30, -10, -30,
-	-30, -10, 30, 40, 40, 30, -10, -30,
-	-30, -10, 20, 30, 30, 20, -10, -30,
-	-30, -20, -10, 0, 0, -10, -20, -30,
-	-50, -40, -30, -20, -20, -30, -40, -50,
+// KINGS
+// Prioritize safety above all else
+var pstKingOpening = [NUM_SQUARES]Eval{
+	525, 550, 525, 470, 470, 490, 550, 525,
+	500, 500, 490, 465, 465, 465, 490, 500,
+	460, 460, 450, 450, 450, 450, 460, 460,
+	440, 440, 420, 420, 420, 420, 440, 440,
+	420, 420, 390, 390, 390, 390, 420, 420,
+	400, 400, 370, 370, 370, 370, 400, 400,
+	375, 375, 350, 350, 350, 350, 375, 375,
+	350, 350, 350, 350, 350, 350, 350, 350,
 }
 
-// KINGS: Survival
-var tableKingSurvival = [NUM_SQUARES]Eval{
-	-90, -90, -90, -90, -90, -90, -90, -90,
-	-90, -50, -50, -50, -50, -50, -50, -90,
-	-90, -50, 20, 20, 20, 20, -50, -90,
-	-90, -50, 20, 50, 50, 20, -50, -90,
-	-90, -50, 20, 50, 50, 20, -50, -90,
-	-90, -50, 20, 20, 20, 20, -50, -90,
-	-90, -50, -50, -50, -50, -50, -50, -90,
-	-90, -90, -90, -90, -90, -90, -90, -90,
+// Prioritize center above all else
+var pstKingEndgame = [NUM_SQUARES]Eval{
+	250, 350, 400, 450, 450, 400, 350, 250,
+	350, 400, 450, 500, 500, 450, 400, 350,
+	400, 450, 500, 525, 525, 500, 450, 400,
+	450, 500, 525, 550, 550, 525, 500, 450,
+	450, 500, 525, 550, 550, 525, 500, 450,
+	400, 450, 500, 525, 525, 500, 450, 400,
+	350, 400, 450, 500, 500, 450, 400, 350,
+	250, 350, 400, 450, 450, 400, 350, 250,
 }
 
 // Takes a white table and returns the black equivalent (flipped vertically)
@@ -164,53 +181,29 @@ func flipPST(table [NUM_SQUARES]Eval) [NUM_SQUARES]Eval {
 }
 
 // Master PST
-var PST [NUM_GAME_STATES][NUM_COLORS][NUM_PIECES][NUM_SQUARES]Eval
+var PST [2][NUM_COLORS][NUM_PIECES][NUM_SQUARES]Eval
 
+// Init pst tables, to be called on engine startup
 func initPST() {
 	// Define White's Tables
-
 	// OPENING
-	PST[OPENING][WHITE][PAWN] = tablePawn
-	PST[OPENING][WHITE][KNIGHT] = tableKnight
-	PST[OPENING][WHITE][BISHOP] = tableBishop
-	PST[OPENING][WHITE][ROOK] = tableRook
-	PST[OPENING][WHITE][QUEEN] = tableQueen
-	PST[OPENING][WHITE][KING] = tableKingSafety
-
-	// MIDDLEGAME
-	PST[MIDDLEGAME][WHITE][PAWN] = tablePawn
-	PST[MIDDLEGAME][WHITE][KNIGHT] = tableKnight
-	PST[MIDDLEGAME][WHITE][BISHOP] = tableBishop
-	PST[MIDDLEGAME][WHITE][ROOK] = tableRook
-	PST[MIDDLEGAME][WHITE][QUEEN] = tableQueen
-	PST[MIDDLEGAME][WHITE][KING] = tableKingSafety
+	PST[OPENING][WHITE][PAWN] = pstPawnOpening
+	PST[OPENING][WHITE][KNIGHT] = pstKnightOpening
+	PST[OPENING][WHITE][BISHOP] = pstBishopOpening
+	PST[OPENING][WHITE][ROOK] = pstRookOpening
+	PST[OPENING][WHITE][QUEEN] = pstQueenOpening
+	PST[OPENING][WHITE][KING] = pstKingOpening
 
 	// ENDGAME
-	PST[ENDGAME][WHITE][PAWN] = tablePawn
-	PST[ENDGAME][WHITE][KNIGHT] = tableKnight
-	PST[ENDGAME][WHITE][BISHOP] = tableBishop
-	PST[ENDGAME][WHITE][ROOK] = tableRook
-	PST[ENDGAME][WHITE][QUEEN] = tableQueen
-	PST[ENDGAME][WHITE][KING] = tableKingActive
-
-	// MATING
-	PST[MATING][WHITE][PAWN] = tablePawn
-	PST[MATING][WHITE][KNIGHT] = tableKnight
-	PST[MATING][WHITE][BISHOP] = tableBishop
-	PST[MATING][WHITE][ROOK] = tableRook
-	PST[MATING][WHITE][QUEEN] = tableQueen
-	PST[MATING][WHITE][KING] = tableKingActive
-
-	// BEING MATED
-	PST[BEING_MATED][WHITE][PAWN] = tablePawn
-	PST[BEING_MATED][WHITE][KNIGHT] = tableKnight
-	PST[BEING_MATED][WHITE][BISHOP] = tableBishop
-	PST[BEING_MATED][WHITE][ROOK] = tableRook
-	PST[BEING_MATED][WHITE][QUEEN] = tableQueen
-	PST[BEING_MATED][WHITE][KING] = tableKingSurvival
+	PST[ENDGAME][WHITE][PAWN] = pstPawnEndgame
+	PST[ENDGAME][WHITE][KNIGHT] = pstKnightEndgame
+	PST[ENDGAME][WHITE][BISHOP] = pstBishopEndgame
+	PST[ENDGAME][WHITE][ROOK] = pstRookEndgame
+	PST[ENDGAME][WHITE][QUEEN] = pstQueenEndgame
+	PST[ENDGAME][WHITE][KING] = pstKingEndgame
 
 	// Generate Black's tables by flipping White's
-	for state := range int(NUM_GAME_STATES) {
+	for state := range 2 {
 		for piece := range int(NUM_PIECES) {
 			PST[state][BLACK][piece] = flipPST(PST[state][WHITE][piece])
 		}

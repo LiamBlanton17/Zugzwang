@@ -81,11 +81,7 @@ const STARTING_HISTORY_LENGTH = 50
 // These are used for helping the engine make more accruate evaluations of the position
 const (
 	OPENING uint8 = iota
-	MIDDLEGAME
 	ENDGAME
-	MATING
-	BEING_MATED
-	NUM_GAME_STATES
 )
 
 // Aliasing Square to unit8 for better type safety

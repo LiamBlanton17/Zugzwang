@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
+	"time"
 )
 
 /*
@@ -26,8 +27,8 @@ func TestGame() {
 	}
 
 	// Setup the starting board
-	board, _ := STARTING_POSITION_FEN.toBoard(nil)
-	const depth = uint8(7)
+	board, _ := FEN("rrr4k/5pp1/8/8/8/8/5PP1/Q6K w ---- - 0 1").toBoard(nil)
+	const depth = uint8(8)
 
 	for {
 
@@ -58,7 +59,6 @@ func TestGame() {
 
 		// Make the move
 		board.makeMove(bestMove)
-
-		break
+		time.Sleep(time.Second * 5)
 	}
 }
