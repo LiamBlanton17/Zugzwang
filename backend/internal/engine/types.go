@@ -226,8 +226,4 @@ type Board struct {
 	// This stores the square of the king for both sides
 	// Keep this updated, makes finding the king more efficient during move generation
 	KingSquare [NUM_COLORS]Square
-
-	// This stores the stage of the game the board is in
-	// Update this depending on certain factors (like pieces left or number of moves, etc)
-	GameState uint8
 }
