@@ -302,7 +302,7 @@ func (b *Board) generatePseudoLegalMovesNegaMax(moves []Move, hasTTEntry bool, t
 
 	// Sort the moves to prune more nodes
 	slices.SortFunc(moves[:moveIdx], func(ma, mb Move) int {
-		return cmp.Compare(mb.orderScore(hasTTEntry, ttEntry.move), ma.orderScore(hasTTEntry, ttEntry.move))
+		return cmp.Compare(mb.orderScore(b, hasTTEntry, ttEntry.move), ma.orderScore(b, hasTTEntry, ttEntry.move))
 	})
 
 	return moveIdx

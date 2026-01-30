@@ -14,6 +14,18 @@ const (
 	KING_VALUE   Eval = 20000
 )
 
+var PIECE_VALUES [NUM_PIECES]Eval
+
+// Init evaluation, called at engine startup
+func initEval() {
+	PIECE_VALUES[PAWN] = PAWN_VALUE
+	PIECE_VALUES[KNIGHT] = KNIGHT_VALUE
+	PIECE_VALUES[BISHOP] = BISHOP_VALUE
+	PIECE_VALUES[ROOK] = ROOK_VALUE
+	PIECE_VALUES[QUEEN] = QUEEN_VALUE
+	PIECE_VALUES[KING] = KING_VALUE
+}
+
 // Piece square table evaluation of the position
 func (b *Board) pstEval(phaseSocre int) Eval {
 	openingEval := Eval(0)

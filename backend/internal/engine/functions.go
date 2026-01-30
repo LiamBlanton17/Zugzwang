@@ -185,7 +185,7 @@ func (m Move) toString() string {
 
 // Get the move ordering score of the Move -- for move ordering
 // todo; this needs to get massively improved
-func (m *Move) orderScore(hasTTEntry bool, ttMove Move) int {
+func (m *Move) orderScore(board *Board, hasTTEntry bool, ttMove Move) int {
 
 	// Check promotion
 	if m.promotion != NO_PIECE {
@@ -195,9 +195,11 @@ func (m *Move) orderScore(hasTTEntry bool, ttMove Move) int {
 	// Check move code
 	switch m.code {
 	case MOVE_CODE_CAPTURE:
-		return 10
+		// MVV-LVA
+		return int((PIECE_VALUES[board.MailBox[m.target]] * 10) - PIECE_VALUES[board.MailBox[m.start]])
 	case MOVE_CODE_EN_PASSANT:
-		return 9
+		// 5 more MVV-LVA as pawn capture pawn
+		return 905
 	case MOVE_CODE_CASTLE:
 		return 8
 	}
