@@ -294,9 +294,15 @@ func (b *Board) generatePseudoLegalMoves(moves []Move) int {
 	// Generate pseudo-legal castling moves
 	moveIdx = b.getCastlingMoves(moves, moveIdx)
 
+	return moveIdx
+}
+
+func (b *Board) generatePseudoLegalMovesNegaMax(moves []Move, hasTTEntry bool, ttEntry TTEntry) int {
+	moveIdx := b.generatePseudoLegalMoves(moves)
+
 	// Sort the moves to prune more nodes
 	slices.SortFunc(moves[:moveIdx], func(ma, mb Move) int {
-		return cmp.Compare(mb.orderScore(), ma.orderScore())
+		return cmp.Compare(mb.orderScore(hasTTEntry, ttEntry.move), ma.orderScore(hasTTEntry, ttEntry.move))
 	})
 
 	return moveIdx
@@ -580,6 +586,10 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.MailBox[H1] = NO_PIECE
 			b.MailBox[F1] = ROOK
 
+			// Update Zobrist hash for the rook
+			b.Zobrist ^= PIECE_ZOBRIST[WHITE][ROOK][H1]
+			b.Zobrist ^= PIECE_ZOBRIST[WHITE][ROOK][F1]
+
 			// Clear white castling rights
 			b.CR &= ^uint8(CASTLE_WK)
 			b.CR &= ^uint8(CASTLE_WQ)
@@ -595,6 +605,10 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.Occupancy[WHITE].set(d1BB)
 			b.MailBox[A1] = NO_PIECE
 			b.MailBox[D1] = ROOK
+
+			// Update Zobrist hash for the rook
+			b.Zobrist ^= PIECE_ZOBRIST[WHITE][ROOK][A1]
+			b.Zobrist ^= PIECE_ZOBRIST[WHITE][ROOK][D1]
 
 			// Clear white castling rights
 			b.CR &= ^uint8(CASTLE_WK)
@@ -612,6 +626,10 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.MailBox[H8] = NO_PIECE
 			b.MailBox[F8] = ROOK
 
+			// Update Zobrist hash for the rook
+			b.Zobrist ^= PIECE_ZOBRIST[BLACK][ROOK][H8]
+			b.Zobrist ^= PIECE_ZOBRIST[BLACK][ROOK][F8]
+
 			// Clear black castling rights
 			b.CR &= ^uint8(CASTLE_BK)
 			b.CR &= ^uint8(CASTLE_BQ)
@@ -627,6 +645,10 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.Occupancy[BLACK].set(d8BB)
 			b.MailBox[A8] = NO_PIECE
 			b.MailBox[D8] = ROOK
+
+			// Update Zobrist hash for the rook
+			b.Zobrist ^= PIECE_ZOBRIST[BLACK][ROOK][A8]
+			b.Zobrist ^= PIECE_ZOBRIST[BLACK][ROOK][D8]
 
 			// Clear black castling rights
 			b.CR &= ^uint8(CASTLE_BK)

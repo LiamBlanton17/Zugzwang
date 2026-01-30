@@ -26,8 +26,9 @@ func TestGame() {
 	}
 
 	// Setup the starting board
+	//"r1bqkb2/pppp4/2n2pp1/4p2R/Nn4p1/4P3/PPPP1P2/R1BQKBN1 b -Q-q - 0 1"
 	board, _ := STARTING_POSITION_FEN.toBoard(nil)
-	const depth = uint8(5)
+	const depth = uint8(7)
 
 	for {
 		// Print board, search
