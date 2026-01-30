@@ -8,13 +8,12 @@ import (
 )
 
 /*
-This file holds the function for testing the engine in a game where it just plays itself.
-It prints the board, searches to a defined depth, plays that move, searches again.
-Until mate.
+This file holds the testing for the strength of the engine.
+It holds the tests to be run and see the results, to know if changes improve the engine or not.
 */
 
 func TestGame() {
-	fmt.Println("Starting test game.")
+	fmt.Println("Starting strength test.")
 	fmt.Println()
 
 	// Init the engine
@@ -27,15 +26,16 @@ func TestGame() {
 	}
 
 	// Setup the starting board
-	board, _ := FEN("rrr4k/5pp1/8/8/8/8/5PP1/Q6K w ---- - 0 1").toBoard(nil)
-	const depth = uint8(8)
+	board, _ := STARTING_POSITION_FEN.toBoard(nil)
+	const depth = uint8(5)
 
 	for {
-
 		// Print board, search
 		board.print()
+		timeStart := time.Now()
 		result := board.rootSearch(depth, moveStack, false)
 		moveResults := result.moves
+		searchTime := time.Since(timeStart)
 
 		// No moves possible, game over
 		if len(moveResults) == 0 {
@@ -55,10 +55,11 @@ func TestGame() {
 		}
 		bestMove := moveResults[0].move
 		fmt.Printf("Best move: %v with eval %.3f\n", bestMove.toString(), float32(bestEval)/100)
-		fmt.Printf("The engine searched: %d nodes\n\n\n", result.nodes)
+		fmt.Printf("The engine searched: %d nodes\n", result.nodes)
+		fmt.Printf("The time searched was: %d milliseconds\n\n\n", searchTime.Milliseconds())
 
 		// Make the move
 		board.makeMove(bestMove)
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 3)
 	}
 }

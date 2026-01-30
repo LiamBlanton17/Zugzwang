@@ -1,7 +1,5 @@
 package engine
 
-import "fmt"
-
 /*
 This file contains all the code related to searching
 */
@@ -54,7 +52,6 @@ func (b *Board) rootSearch(depth uint8, moveStack [][]Move, multithread bool) Ro
 			eval: resultEval,
 			move: move,
 		})
-		fmt.Printf("Evaluted %v: best score %d\n", move.toString(), resultEval)
 		nodes += result.nodes
 		if resultEval > bestEval {
 			bestEval = resultEval
@@ -92,6 +89,22 @@ type SearchResult struct {
 }
 
 func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack [][]Move) SearchResult {
+
+	// Check the TT table
+	ttEntry, ttFound := probeTT(b.Zobrist)
+	if ttFound {
+
+		// Make sure the entry is exact and at this depth or greater
+		if ttEntry.flag == TT_EXACT && ttEntry.depth >= depth {
+			return SearchResult{
+				nodes: 0,
+				best: MoveEval{
+					move: Move{}, // Currently TT entry does not store the move
+					eval: ttEntry.eval,
+				},
+			}
+		}
+	}
 
 	// If at base condition, quiescence search
 	if depth == 0 {
@@ -146,6 +159,9 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 			bestEval += Eval(ply)
 		}
 	}
+
+	// Store the exact value in the TT table
+	updateTT(b.Zobrist, bestEval, TT_EXACT, depth)
 
 	return SearchResult{
 		nodes: nodes,
