@@ -44,21 +44,17 @@ func ClearTT() {
 }
 
 // Function to probe the tt
-func probeTT(zobrist ZobristHash) (TTEntry, bool) {
+func probeTT(zobrist ZobristHash) (*TTEntry, bool) {
 	// Compute the TT key
 	key := zobrist & (TT_SIZE - 1)
 
-	// Get the entry
-	entry := TT[key]
-
-	// Read zobrist
+	// Get the entry and return hit
+	entry := &TT[key]
 	if entry.zobrist == zobrist {
-
-		// Return a tt hit
 		return entry, true
 	}
 
-	// Return a tt miss
+	// Return miss
 	return entry, false
 }
 

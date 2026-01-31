@@ -1,10 +1,8 @@
 package engine
 
 import (
-	"cmp"
 	"fmt"
 	"math/bits"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -297,13 +295,28 @@ func (b *Board) generatePseudoLegalMoves(moves []Move) int {
 	return moveIdx
 }
 
-func (b *Board) generatePseudoLegalMovesNegaMax(moves []Move, hasTTEntry bool, ttEntry TTEntry) int {
+func (b *Board) generatePseudoLegalMovesNegaMax(moves []Move, ttEntry *TTEntry) int {
 	moveIdx := b.generatePseudoLegalMoves(moves)
 
-	// Sort the moves to prune more nodes
-	slices.SortFunc(moves[:moveIdx], func(ma, mb Move) int {
-		return cmp.Compare(mb.orderScore(b, hasTTEntry, ttEntry.move), ma.orderScore(b, hasTTEntry, ttEntry.move))
-	})
+	// Precompute scores
+	var scores [256]int
+	for i := 0; i < moveIdx; i++ {
+		scores[i] = moves[i].orderScore(b, ttEntry)
+	}
+
+	// Insertion sort descending using stack array
+	for i := 1; i < moveIdx; i++ {
+		move := moves[i]
+		score := scores[i]
+		j := i - 1
+		for j >= 0 && scores[j] < score {
+			moves[j+1] = moves[j]
+			scores[j+1] = scores[j]
+			j--
+		}
+		moves[j+1] = move
+		scores[j+1] = score
+	}
 
 	return moveIdx
 }

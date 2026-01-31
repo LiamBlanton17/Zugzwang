@@ -97,8 +97,19 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 	originalBeta := beta
 
 	// Check the TT table
-	ttEntry, ttFound := probeTT(b.Zobrist)
-	if ttFound && ttEntry.depth >= depth {
+	var ttEntry *TTEntry = nil
+
+	// Compute the TT key
+	key := b.Zobrist & (TT_SIZE - 1)
+
+	// Get the entry and return hit
+	entry := &TT[key]
+	if entry.zobrist == b.Zobrist {
+		ttEntry = entry
+	}
+
+	// Return miss
+	if ttEntry != nil && ttEntry.depth >= depth {
 
 		switch ttEntry.flag {
 		case TT_EXACT:
@@ -157,7 +168,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 
 	// Generate the pseudo legal moves to play, populating this plys move in the movestack
 	moves := moveStack[ply]
-	numberOfMoves := b.generatePseudoLegalMovesNegaMax(moves, ttFound, ttEntry)
+	numberOfMoves := b.generatePseudoLegalMovesNegaMax(moves, ttEntry)
 	legalMovesFound := false
 	for _, move := range moves[:numberOfMoves] {
 
@@ -202,7 +213,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 	}
 
 	// Only update TT if searching at a greater or equal depth than previous entry
-	if depth >= ttEntry.depth {
+	if ttEntry == nil || depth >= ttEntry.depth {
 		var ttFlag uint8
 		if bestEval <= originalAlpha {
 			ttFlag = TT_UPPER

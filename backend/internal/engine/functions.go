@@ -185,7 +185,7 @@ func (m Move) toString() string {
 
 // Get the move ordering score of the Move -- for move ordering
 // todo; this needs to get massively improved
-func (m *Move) orderScore(board *Board, hasTTEntry bool, ttMove Move) int {
+func (m *Move) orderScore(board *Board, ttEntry *TTEntry) int {
 
 	// Check promotion
 	if m.promotion != NO_PIECE {
@@ -205,8 +205,8 @@ func (m *Move) orderScore(board *Board, hasTTEntry bool, ttMove Move) int {
 	}
 
 	// Check the TT table
-	if hasTTEntry {
-		if ttMove == *m {
+	if ttEntry != nil {
+		if ttEntry.move == *m {
 			return 7
 		}
 	}

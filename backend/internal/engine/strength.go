@@ -3,6 +3,9 @@ package engine
 import (
 	"cmp"
 	"fmt"
+	"log"
+	"os"
+	"runtime/pprof"
 	"slices"
 	"time"
 )
@@ -65,6 +68,17 @@ func StrengthTest() {
 			rounds:        3,
 		},
 	}
+
+	// Setup profiler
+	f, err := os.Create("cpu.prof")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	if err := pprof.StartCPUProfile(f); err != nil {
+		log.Fatal(err)
+	}
+	defer pprof.StopCPUProfile()
 
 	for pi, position := range positions {
 		// Setup the starting board
