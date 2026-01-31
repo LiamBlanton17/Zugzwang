@@ -35,7 +35,6 @@ const TT_SIZE = 16777216
 var TT []TTEntry
 
 func initTT() {
-	// 67,108,864 entries
 	TT = make([]TTEntry, TT_SIZE)
 }
 
