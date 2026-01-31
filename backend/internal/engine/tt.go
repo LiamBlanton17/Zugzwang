@@ -28,12 +28,21 @@ const (
 
 // Size of the TT table
 // The memory will be TT_SIZE * sizeof(TTEntry)
-// With 512MB of memory, the size of the TT table can be ~33,554,432 entries if the tt entry size is 128 btis
-const TT_SIZE = 33554432 * 2
+// With 256MB of memory, the size of the TT table can be ~16,777,216 entries if the tt entry size is 128 btis
+const TT_SIZE = 16777216
 
-// Global TT table
-// This is to be used by all threads and games
-var TT [TT_SIZE]TTEntry
+// Use a slice instead of a fixed-size array
+var TT []TTEntry
+
+func initTT() {
+	// 67,108,864 entries
+	TT = make([]TTEntry, TT_SIZE)
+}
+
+// Now this will work:
+func ClearTT() {
+	clear(TT)
+}
 
 // Function to probe the tt
 func probeTT(zobrist ZobristHash) (TTEntry, bool) {

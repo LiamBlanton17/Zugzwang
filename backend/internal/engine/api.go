@@ -60,4 +60,7 @@ func InitEngine() {
 
 	// Setup eval
 	initEval()
+
+	// Setup TT
+	initTT()
 }
