@@ -885,3 +885,17 @@ func (b *Board) getPhaseScore() int {
 
 	return phase
 }
+
+// Function to check if the board has voliated the 3-fold repitition rule
+func (b *Board) isThreeFold() bool {
+	count := 0
+	for _, h := range b.History {
+		if h == b.Zobrist {
+			count++
+		}
+		if count == 2 {
+			return true
+		}
+	}
+	return false
+}

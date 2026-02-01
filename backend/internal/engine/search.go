@@ -92,6 +92,18 @@ type SearchResult struct {
 
 func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack [][]Move) SearchResult {
 
+	// checking for 3-fold repition
+	// if it is, the game is a draw
+	if b.isThreeFold() {
+		return SearchResult{
+			nodes: 1,
+			best: MoveEval{
+				move: Move{},
+				eval: Eval(0),
+			},
+		}
+	}
+
 	// saving original alpha for TT tables
 	originalAlpha := alpha
 	originalBeta := beta
