@@ -60,6 +60,9 @@ type MoveEval struct {
 	eval Eval
 }
 
+// Aliasing killer moves for better type safety
+type Killers [MAX_PLY][2]Move
+
 // Defining mins and maxes for the eval type, this is close to max for 16-bit int but not there (to avoid overflow issues)
 const (
 	MAX_EVAL = Eval(27000)

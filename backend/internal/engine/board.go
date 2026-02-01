@@ -295,13 +295,13 @@ func (b *Board) generatePseudoLegalMoves(moves []Move) int {
 	return moveIdx
 }
 
-func (b *Board) generatePseudoLegalMovesWithOrdering(moves []Move, ttEntry *TTEntry) int {
+func (b *Board) generatePseudoLegalMovesWithOrdering(moves []Move, ttEntry *TTEntry, killers *[2]Move, twoPlyKillers *[2]Move) int {
 	moveIdx := b.generatePseudoLegalMoves(moves)
 
 	// Precompute scores
 	var scores [MAX_NUMBER_OF_MOVES_IN_A_POSITION]int
 	for i := range moveIdx {
-		scores[i] = moves[i].orderScore(b, ttEntry)
+		scores[i] = moves[i].orderScore(b, ttEntry, killers, twoPlyKillers)
 	}
 
 	// Insertion sort descending using stack array

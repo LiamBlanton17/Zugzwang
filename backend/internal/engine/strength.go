@@ -30,82 +30,76 @@ func StrengthTest() {
 	// Init the engine
 	InitEngine()
 
-	// Allocate the moveStack
-	moveStack := make([][]Move, MAX_PLY)
-	for i := range moveStack {
-		moveStack[i] = make([]Move, 256)
-	}
-
 	// Positions to run the strength test on.
 	var positions []StrengthTestTest = []StrengthTestTest{
 		{
 			fen:           "r1b1k2r/pp1n2pp/1qn1pp2/3pP3/1b1P1P2/3B1N2/PP1B2PP/R2QK1NR w KQkq - 4 11",
 			stockfishEval: 169,
 			stockfishMove: "Ne2",
-			depth:         8,
+			depth:         7,
 			rounds:        3,
 		},
 		{
 			fen:           "r1b3k1/pp1nb1pp/1q2p3/3pP3/3n4/P2B1P2/1PQBN2P/R3K2R w KQ-- - 0 16",
 			stockfishEval: 0,
 			stockfishMove: "Nxd4",
-			depth:         8,
+			depth:         7,
 			rounds:        3,
 		},
 		{
 			fen:           "r1b4k/pp4pB/4pB2/3p4/2n2P1q/P7/1PQ4P/1K1R3R b ---- - 0 22",
 			stockfishEval: 176,
 			stockfishMove: "Qxh7",
-			depth:         8,
+			depth:         7,
 			rounds:        3,
 		},
 		{
 			fen:           "r3k2r/1b3ppp/pq2p3/1pb5/P5n1/3B1N2/1PP1QPPP/R1B2RK1 b --kq - 6 16",
 			stockfishEval: -38,
 			stockfishMove: "b4",
-			depth:         8,
+			depth:         7,
 			rounds:        3,
 		},
 		{
 			fen:           "2rr4/1b2kppp/p3p3/P1n1N3/1pB5/1P2P2P/2P3P1/R2R2K1 b ---- - 0 27",
 			stockfishEval: -53,
 			stockfishMove: "be4",
-			depth:         8,
+			depth:         7,
 			rounds:        3,
 		},
 		{
 			fen:           "8/2k4p/B1b1p1p1/5pP1/7R/1P2P2P/2r5/4K3 w ---- - 0 40",
 			stockfishEval: 7,
 			stockfishMove: "Rxh7",
-			depth:         8,
+			depth:         7,
 			rounds:        3,
 		},
 		{
 			fen:           "rnbqkb1r/pp2pp1p/5np1/3P4/8/2N5/PP1P1PPP/R1BQKBNR w KQkq - 0 6",
 			stockfishEval: 118,
 			stockfishMove: "Bc4",
-			depth:         8,
+			depth:         7,
 			rounds:        3,
 		},
 		{
 			fen:           "r2q1rk1/1p2ppb1/6pp/p1nP1b2/P1PN4/1QN1B3/1P3PPP/R3R1K1 w ---- - 1 16",
 			stockfishEval: 332,
 			stockfishMove: "Qb5",
-			depth:         8,
+			depth:         7,
 			rounds:        3,
 		},
 		{
 			fen:           "2rqr1k1/p4p2/1p2p1p1/4Nn2/3PR3/P1PQ4/5PP1/2R3K1 b ---- - 0 23",
 			stockfishEval: -93,
 			stockfishMove: "Kg7",
-			depth:         8,
+			depth:         7,
 			rounds:        3,
 		},
 		{
 			fen:           "2rr4/p4pk1/1p2p1pn/4N3/3P4/P1PR4/5PP1/3R1K2 b ---- - 2 30",
 			stockfishEval: -92,
 			stockfishMove: "g5",
-			depth:         8,
+			depth:         7,
 			rounds:        3,
 		},
 	}
@@ -138,7 +132,7 @@ func StrengthTest() {
 
 			// search
 			timeStart := time.Now()
-			result := board.rootSearch(depth, moveStack, false)
+			result := board.rootSearch(depth, false)
 			moveResults := result.moves
 			aggSearchTime += time.Since(timeStart).Milliseconds()
 			nodes = result.nodes
