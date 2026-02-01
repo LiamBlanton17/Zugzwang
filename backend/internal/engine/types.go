@@ -73,6 +73,10 @@ const MAX_PLY = 64
 // This comes from lichess official study that it is 218, but setting to 256 is fine
 const MAX_NUMBER_OF_MOVES_IN_A_POSITION = 256
 
+// Defining a delta margin to use in Delta Pruning in the Quiescence search
+// This is in centipawns
+const DELTA_MARGIN = 75
+
 // Defining the starting history length
 // This can be tweaked if needed, but shouldn't have too much of an effect on the performance
 const STARTING_HISTORY_LENGTH = 50

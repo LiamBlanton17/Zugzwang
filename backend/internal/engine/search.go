@@ -180,7 +180,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 
 	// Generate the pseudo legal moves to play, populating this plys move in the movestack
 	moves := moveStack[ply]
-	numberOfMoves := b.generatePseudoLegalMovesNegaMax(moves, ttEntry)
+	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, ttEntry)
 	legalMovesFound := false
 	for _, move := range moves[:numberOfMoves] {
 
@@ -262,19 +262,15 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 	// NOTE: Right now for whatever reason quiescence causes the engine to play significantly worse
 	// Its missing easy captures, pruning early, etc.
 	// For now, just evaluate and later improve the search.
-	bestEval := b.eval()
+
+	// First, evalute the stand pat score of the position, the evaluation before doing any more captures
+	standPat := b.eval()
+	bestEval := standPat
 	if b.Turn == BLACK {
 		bestEval *= -1
 	}
-	return SearchResult{
-		nodes: 1,
-		best: MoveEval{
-			move: Move{},
-			eval: bestEval,
-		},
-	}
 
-	// check if that caused a soft-beta cutoff
+	// If the stand pat failed over beta, return it
 	if bestEval >= beta {
 		return SearchResult{
 			nodes: 1,
@@ -301,13 +297,18 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 		}
 	}
 
-	// For now quiescence search will just evaluate
 	moves := moveStack[ply]
-	numberOfMoves := b.generatePseudoLegalMoves(moves)
+	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, nil)
 	for _, move := range moves[:numberOfMoves] {
 
 		// Make sure the move was a capture
-		if move.code != MOVE_CODE_CAPTURE && move.code != MOVE_CODE_EN_PASSANT {
+		if move.code != MOVE_CODE_CAPTURE {
+			continue
+		}
+
+		// Delta pruning
+		// If the capture for free, plus stand pat and a margin does not exceed alpha, do not search
+		if standPat+PIECE_VALUES[b.MailBox[move.target]]+DELTA_MARGIN <= alpha {
 			continue
 		}
 

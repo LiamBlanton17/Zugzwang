@@ -295,7 +295,7 @@ func (b *Board) generatePseudoLegalMoves(moves []Move) int {
 	return moveIdx
 }
 
-func (b *Board) generatePseudoLegalMovesNegaMax(moves []Move, ttEntry *TTEntry) int {
+func (b *Board) generatePseudoLegalMovesWithOrdering(moves []Move, ttEntry *TTEntry) int {
 	moveIdx := b.generatePseudoLegalMoves(moves)
 
 	// Precompute scores
