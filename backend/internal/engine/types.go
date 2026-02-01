@@ -20,8 +20,8 @@ type Piece uint8
 // Aliasing Color to unit8 for better type safety
 type Color uint8
 
-// Aliasing Eval to int32 for better type safety
-type Eval int32
+// Aliasing Eval to int16 for better type safety
+type Eval int16
 
 // Definging the move structure
 // Code will be a variety of things (is a caputure, white castle kingside, etc)
@@ -60,10 +60,10 @@ type MoveEval struct {
 	eval Eval
 }
 
-// Defining mins and maxes for the eval type, this is close to max for 32-bit int but not there (to avoid overflow issues)
+// Defining mins and maxes for the eval type, this is close to max for 16-bit int but not there (to avoid overflow issues)
 const (
-	MAX_EVAL = Eval(2000000000)
-	MIN_EVAL = Eval(-2000000000)
+	MAX_EVAL = Eval(27000)
+	MIN_EVAL = Eval(-27000)
 )
 
 // Define the max ply the engine will search too
@@ -81,11 +81,7 @@ const STARTING_HISTORY_LENGTH = 50
 // These are used for helping the engine make more accruate evaluations of the position
 const (
 	OPENING uint8 = iota
-	MIDDLEGAME
 	ENDGAME
-	MATING
-	BEING_MATED
-	NUM_GAME_STATES
 )
 
 // Aliasing Square to unit8 for better type safety
@@ -95,7 +91,7 @@ const (
 type Square uint8
 
 // Aliasing a Zobrist hash to uint64 for better type safety
-type ZobristHash uint8
+type ZobristHash uint64
 
 // Aliasing game history to an array of Zobrist hashs
 // This is the most effective way to use game history to check for repititions
@@ -230,8 +226,4 @@ type Board struct {
 	// This stores the square of the king for both sides
 	// Keep this updated, makes finding the king more efficient during move generation
 	KingSquare [NUM_COLORS]Square
-
-	// This stores the stage of the game the board is in
-	// Update this depending on certain factors (like pieces left or number of moves, etc)
-	GameState uint8
 }

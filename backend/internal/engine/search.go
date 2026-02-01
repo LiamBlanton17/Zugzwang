@@ -60,6 +60,8 @@ func (b *Board) rootSearch(depth uint8, moveStack [][]Move, multithread bool) Ro
 			}
 		}
 
+		//fmt.Printf("Move: %v scored %d\n", move.toString(), resultEval)
+
 		// Failed soft on beta-cutoff, exit the search
 		// todo: remove this and beta, as beta never gets updated in rootSearch and thus this will not happen
 		if resultEval >= beta {
@@ -90,9 +92,85 @@ type SearchResult struct {
 
 func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack [][]Move) SearchResult {
 
+	// checking for 3-fold repition
+	// if it is, the game is a draw
+	if b.isThreeFold() {
+		return SearchResult{
+			nodes: 1,
+			best: MoveEval{
+				move: Move{},
+				eval: Eval(0),
+			},
+		}
+	}
+
+	// saving original alpha for TT tables
+	originalAlpha := alpha
+	originalBeta := beta
+
+	// Check the TT table
+	var ttEntry *TTEntry = nil
+
+	// Compute the TT key
+	key := b.Zobrist & (TT_SIZE - 1)
+
+	// Get the entry and return hit
+	entry := &TT[key]
+	if entry.zobrist == b.Zobrist {
+		ttEntry = entry
+	}
+
+	// Return miss
+	if ttEntry != nil && ttEntry.depth >= depth {
+
+		switch ttEntry.flag {
+		case TT_EXACT:
+			return SearchResult{
+				nodes: 1,
+				best: MoveEval{
+					move: ttEntry.move,
+					eval: ttEntry.eval,
+				},
+			}
+		case TT_LOWER:
+			if ttEntry.eval >= beta {
+				return SearchResult{
+					nodes: 1,
+					best: MoveEval{
+						move: ttEntry.move,
+						eval: ttEntry.eval,
+					},
+				}
+			}
+			alpha = max(alpha, ttEntry.eval)
+
+		case TT_UPPER:
+			if ttEntry.eval <= alpha {
+				return SearchResult{
+					nodes: 1,
+					best: MoveEval{
+						move: ttEntry.move,
+						eval: ttEntry.eval,
+					},
+				}
+			}
+			beta = min(beta, ttEntry.eval)
+		}
+
+		if alpha >= beta {
+			return SearchResult{
+				nodes: 1,
+				best: MoveEval{
+					move: ttEntry.move,
+					eval: ttEntry.eval,
+				},
+			}
+		}
+	}
+
 	// If at base condition, quiescence search
 	if depth == 0 {
-		return b.quiescence(ply, alpha, beta, moveStack)
+		return b.quiescence(ply+1, alpha, beta, moveStack)
 	}
 
 	// Setup the search
@@ -102,7 +180,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 
 	// Generate the pseudo legal moves to play, populating this plys move in the movestack
 	moves := moveStack[ply]
-	numberOfMoves := b.generatePseudoLegalMoves(moves)
+	numberOfMoves := b.generatePseudoLegalMovesNegaMax(moves, ttEntry)
 	legalMovesFound := false
 	for _, move := range moves[:numberOfMoves] {
 
@@ -129,6 +207,8 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 
 		// Failed soft on beta-cutoff, exit the search
 		if resultEval >= beta {
+			bestEval = resultEval
+			bestMove = move
 			break
 		}
 	}
@@ -142,6 +222,20 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 			// If is in check, then take the MIN_EVAL and add the ply to it to prioritize faster mates
 			bestEval += Eval(ply)
 		}
+	}
+
+	// Only update TT if searching at a greater or equal depth than previous entry
+	if ttEntry == nil || depth >= ttEntry.depth {
+		var ttFlag uint8
+		if bestEval <= originalAlpha {
+			ttFlag = TT_UPPER
+		} else if bestEval >= originalBeta {
+			ttFlag = TT_LOWER
+		} else {
+			ttFlag = TT_EXACT
+		}
+		// Store the value in the TT table
+		updateTT(b.Zobrist, bestEval, ttFlag, depth, bestMove)
 	}
 
 	return SearchResult{
@@ -164,9 +258,20 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 	// negamax returns the score as relation to positive being good for the active play
 	// so we must flip blacks eval sign
 	// if no captures found, at end of quiescence search and should evaluate
+
+	// NOTE: Right now for whatever reason quiescence causes the engine to play significantly worse
+	// Its missing easy captures, pruning early, etc.
+	// For now, just evaluate and later improve the search.
 	bestEval := b.eval()
 	if b.Turn == BLACK {
 		bestEval *= -1
+	}
+	return SearchResult{
+		nodes: 1,
+		best: MoveEval{
+			move: Move{},
+			eval: bestEval,
+		},
 	}
 
 	// check if that caused a soft-beta cutoff

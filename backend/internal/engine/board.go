@@ -1,9 +1,8 @@
 package engine
 
 import (
-	"cmp"
 	"fmt"
-	"slices"
+	"math/bits"
 	"strconv"
 	"strings"
 )
@@ -293,9 +292,31 @@ func (b *Board) generatePseudoLegalMoves(moves []Move) int {
 	// Generate pseudo-legal castling moves
 	moveIdx = b.getCastlingMoves(moves, moveIdx)
 
-	slices.SortFunc(moves[:moveIdx], func(ma, mb Move) int {
-		return cmp.Compare(mb.orderScore(), ma.orderScore())
-	})
+	return moveIdx
+}
+
+func (b *Board) generatePseudoLegalMovesNegaMax(moves []Move, ttEntry *TTEntry) int {
+	moveIdx := b.generatePseudoLegalMoves(moves)
+
+	// Precompute scores
+	var scores [MAX_NUMBER_OF_MOVES_IN_A_POSITION]int
+	for i := range moveIdx {
+		scores[i] = moves[i].orderScore(b, ttEntry)
+	}
+
+	// Insertion sort descending using stack array
+	for i := 1; i < moveIdx; i++ {
+		move := moves[i]
+		score := scores[i]
+		j := i - 1
+		for j >= 0 && scores[j] < score {
+			moves[j+1] = moves[j]
+			scores[j+1] = scores[j]
+			j--
+		}
+		moves[j+1] = move
+		scores[j+1] = score
+	}
 
 	return moveIdx
 }
@@ -578,6 +599,10 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.MailBox[H1] = NO_PIECE
 			b.MailBox[F1] = ROOK
 
+			// Update Zobrist hash for the rook
+			b.Zobrist ^= PIECE_ZOBRIST[WHITE][ROOK][H1]
+			b.Zobrist ^= PIECE_ZOBRIST[WHITE][ROOK][F1]
+
 			// Clear white castling rights
 			b.CR &= ^uint8(CASTLE_WK)
 			b.CR &= ^uint8(CASTLE_WQ)
@@ -593,6 +618,10 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.Occupancy[WHITE].set(d1BB)
 			b.MailBox[A1] = NO_PIECE
 			b.MailBox[D1] = ROOK
+
+			// Update Zobrist hash for the rook
+			b.Zobrist ^= PIECE_ZOBRIST[WHITE][ROOK][A1]
+			b.Zobrist ^= PIECE_ZOBRIST[WHITE][ROOK][D1]
 
 			// Clear white castling rights
 			b.CR &= ^uint8(CASTLE_WK)
@@ -610,6 +639,10 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.MailBox[H8] = NO_PIECE
 			b.MailBox[F8] = ROOK
 
+			// Update Zobrist hash for the rook
+			b.Zobrist ^= PIECE_ZOBRIST[BLACK][ROOK][H8]
+			b.Zobrist ^= PIECE_ZOBRIST[BLACK][ROOK][F8]
+
 			// Clear black castling rights
 			b.CR &= ^uint8(CASTLE_BK)
 			b.CR &= ^uint8(CASTLE_BQ)
@@ -625,6 +658,10 @@ func (b *Board) makeMove(move Move) (MoveUndo, bool) {
 			b.Occupancy[BLACK].set(d8BB)
 			b.MailBox[A8] = NO_PIECE
 			b.MailBox[D8] = ROOK
+
+			// Update Zobrist hash for the rook
+			b.Zobrist ^= PIECE_ZOBRIST[BLACK][ROOK][A8]
+			b.Zobrist ^= PIECE_ZOBRIST[BLACK][ROOK][D8]
 
 			// Clear black castling rights
 			b.CR &= ^uint8(CASTLE_BK)
@@ -790,4 +827,75 @@ func (b *Board) desync(where string) {
 			}
 		}
 	}
+}
+
+// Function used to get the phase score of the position
+// This should be called once at the start of the evaluation of a board
+// This returns the phase offset to be used against the PST tables
+// Function used by the board to get the pst value
+func (b *Board) getPhaseScore() int {
+	// Weights for calculating game phase (Non-Pawn Material is standard)
+	const (
+		PawnPhase   = 0
+		KnightPhase = 1
+		BishopPhase = 1
+		RookPhase   = 2
+		QueenPhase  = 4
+	)
+
+	// Calculate the maximum possible phase (Starting Position)
+	// 16 Pawns, 4 Knights, 4 Bishops, 4 Rooks, 2 Queens
+	const TotalPhase = PawnPhase*16 + KnightPhase*4 + BishopPhase*4 + RookPhase*4 + QueenPhase*2
+
+	// Start with TotalPhase and subtract the pieces currently on the board.
+	// If board is full -> phase = TotalPhase - TotalPhase = 0 (Opening)
+	// If board is empty -> phase = TotalPhase - 0 = TotalPhase (Endgame)
+	phase := TotalPhase
+
+	// Count White Pieces
+	wp := bits.OnesCount64(uint64(b.Pieces[WHITE][PAWN]))
+	wn := bits.OnesCount64(uint64(b.Pieces[WHITE][KNIGHT]))
+	wb := bits.OnesCount64(uint64(b.Pieces[WHITE][BISHOP]))
+	wr := bits.OnesCount64(uint64(b.Pieces[WHITE][ROOK]))
+	wq := bits.OnesCount64(uint64(b.Pieces[WHITE][QUEEN]))
+
+	// Count Black Pieces
+	bp := bits.OnesCount64(uint64(b.Pieces[BLACK][PAWN]))
+	bn := bits.OnesCount64(uint64(b.Pieces[BLACK][KNIGHT]))
+	bb := bits.OnesCount64(uint64(b.Pieces[BLACK][BISHOP]))
+	br := bits.OnesCount64(uint64(b.Pieces[BLACK][ROOK]))
+	bq := bits.OnesCount64(uint64(b.Pieces[BLACK][QUEEN]))
+
+	// Subtract material currently on board
+	phase -= wp * PawnPhase
+	phase -= bp * PawnPhase
+	phase -= wn * KnightPhase
+	phase -= bn * KnightPhase
+	phase -= wb * BishopPhase
+	phase -= bb * BishopPhase
+	phase -= wr * RookPhase
+	phase -= br * RookPhase
+	phase -= wq * QueenPhase
+	phase -= bq * QueenPhase
+
+	// Normalize to range [0, 256]
+	// 0   = Opening
+	// 256 = Endgame
+	phase = (phase*256 + (TotalPhase / 2)) / TotalPhase
+
+	return phase
+}
+
+// Function to check if the board has voliated the 3-fold repitition rule
+func (b *Board) isThreeFold() bool {
+	count := 0
+	for _, h := range b.History {
+		if h == b.Zobrist {
+			count++
+		}
+		if count == 2 {
+			return true
+		}
+	}
+	return false
 }

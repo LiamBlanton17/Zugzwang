@@ -19,8 +19,8 @@ func main() {
 	switch action {
 	case "perft":
 		engine.Perft()
-	case "testgame":
-		engine.TestGame()
+	case "strengthtest":
+		engine.StrengthTest()
 	default:
 		fmt.Println("The action is not supported: ", action)
 	}

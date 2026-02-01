@@ -57,4 +57,10 @@ func InitEngine() {
 
 	// Setup PSTs
 	initPST()
+
+	// Setup eval
+	initEval()
+
+	// Setup TT
+	initTT()
 }
