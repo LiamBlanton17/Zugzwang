@@ -60,6 +60,12 @@ type MoveEval struct {
 	eval Eval
 }
 
+// Aliasing killer moves for better type safety
+type Killers [MAX_PLY][2]Move
+
+// Aliasing cutoff history hueristic for better type safety
+type CutoffHeuristic [NUM_COLORS][NUM_SQUARES][NUM_SQUARES]int
+
 // Defining mins and maxes for the eval type, this is close to max for 16-bit int but not there (to avoid overflow issues)
 const (
 	MAX_EVAL = Eval(27000)
@@ -72,6 +78,10 @@ const MAX_PLY = 64
 // Defining the max number of moves in a position
 // This comes from lichess official study that it is 218, but setting to 256 is fine
 const MAX_NUMBER_OF_MOVES_IN_A_POSITION = 256
+
+// Defining a delta margin to use in Delta Pruning in the Quiescence search
+// This is in centipawns
+const DELTA_MARGIN = 75
 
 // Defining the starting history length
 // This can be tweaked if needed, but shouldn't have too much of an effect on the performance

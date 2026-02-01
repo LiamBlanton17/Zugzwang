@@ -13,7 +13,7 @@ type RootSearchResult struct {
 	moves []MoveEval
 }
 
-func (b *Board) rootSearch(depth uint8, moveStack [][]Move, multithread bool) RootSearchResult {
+func (b *Board) rootSearch(depth uint8, multithread bool) RootSearchResult {
 
 	// Validate depth is reasonable
 	if depth == 0 {
@@ -21,6 +21,18 @@ func (b *Board) rootSearch(depth uint8, moveStack [][]Move, multithread bool) Ro
 	} else if depth > 10 {
 		depth = 10
 	}
+
+	// Allocate the moveStack
+	moveStack := make([][]Move, MAX_PLY)
+	for i := range moveStack {
+		moveStack[i] = make([]Move, 256)
+	}
+
+	// Setting up the killer moves
+	var killers Killers
+
+	// Setting up the history cutoff heuristic
+	var cutoffHistory CutoffHeuristic
 
 	// Setup the search
 	nodes := 1
@@ -45,7 +57,7 @@ func (b *Board) rootSearch(depth uint8, moveStack [][]Move, multithread bool) Ro
 
 		// Search the new position and get the results
 		legalMovesFound = true
-		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack)
+		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack, &killers, &cutoffHistory)
 		b.unMakeMove(unmake)
 		resultEval := -result.best.eval
 		results = append(results, MoveEval{
@@ -90,7 +102,7 @@ type SearchResult struct {
 	best  MoveEval
 }
 
-func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack [][]Move) SearchResult {
+func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack [][]Move, killers *Killers, cutoffHistory *CutoffHeuristic) SearchResult {
 
 	// checking for 3-fold repition
 	// if it is, the game is a draw
@@ -178,9 +190,15 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 	bestEval := MIN_EVAL
 	bestMove := Move{}
 
+	// Two ply killers are killer moves from the previous position for this color
+	var twoPlyKillers *[2]Move
+	if ply >= 2 {
+		twoPlyKillers = &(*killers)[ply-1]
+	}
+
 	// Generate the pseudo legal moves to play, populating this plys move in the movestack
 	moves := moveStack[ply]
-	numberOfMoves := b.generatePseudoLegalMovesNegaMax(moves, ttEntry)
+	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, ttEntry, &(*killers)[ply], twoPlyKillers, cutoffHistory)
 	legalMovesFound := false
 	for _, move := range moves[:numberOfMoves] {
 
@@ -193,7 +211,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 
 		// Search the new position and get the results
 		legalMovesFound = true
-		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack)
+		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack, killers, cutoffHistory)
 		b.unMakeMove(unmake)
 		resultEval := -result.best.eval
 		nodes += result.nodes
@@ -209,6 +227,18 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 		if resultEval >= beta {
 			bestEval = resultEval
 			bestMove = move
+
+			// Update killers
+			// Make sure it is not a capture
+			if move.code != MOVE_CODE_CAPTURE && move.code != MOVE_CODE_EN_PASSANT {
+				if killers[ply][0] != move {
+					killers[ply][1] = killers[ply][0]
+					killers[ply][0] = move
+				}
+
+				// Update history of cutoffs as well (if not capture)
+				cutoffHistory[b.Turn][move.start][move.target] += int(depth)
+			}
 			break
 		}
 	}
@@ -262,19 +292,15 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 	// NOTE: Right now for whatever reason quiescence causes the engine to play significantly worse
 	// Its missing easy captures, pruning early, etc.
 	// For now, just evaluate and later improve the search.
-	bestEval := b.eval()
+
+	// First, evalute the stand pat score of the position, the evaluation before doing any more captures
+	standPat := b.eval()
+	bestEval := standPat
 	if b.Turn == BLACK {
 		bestEval *= -1
 	}
-	return SearchResult{
-		nodes: 1,
-		best: MoveEval{
-			move: Move{},
-			eval: bestEval,
-		},
-	}
 
-	// check if that caused a soft-beta cutoff
+	// If the stand pat failed over beta, return it
 	if bestEval >= beta {
 		return SearchResult{
 			nodes: 1,
@@ -301,13 +327,18 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 		}
 	}
 
-	// For now quiescence search will just evaluate
 	moves := moveStack[ply]
-	numberOfMoves := b.generatePseudoLegalMoves(moves)
+	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, nil, nil, nil, nil)
 	for _, move := range moves[:numberOfMoves] {
 
 		// Make sure the move was a capture
-		if move.code != MOVE_CODE_CAPTURE && move.code != MOVE_CODE_EN_PASSANT {
+		if move.code != MOVE_CODE_CAPTURE {
+			continue
+		}
+
+		// Delta pruning
+		// If the capture for free, plus stand pat and a margin does not exceed alpha, do not search
+		if standPat+PIECE_VALUES[b.MailBox[move.target]]+DELTA_MARGIN <= alpha {
 			continue
 		}
 

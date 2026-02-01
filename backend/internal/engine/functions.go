@@ -184,8 +184,39 @@ func (m Move) toString() string {
 }
 
 // Get the move ordering score of the Move -- for move ordering
-// todo; this needs to get massively improved
-func (m *Move) orderScore(board *Board, ttEntry *TTEntry) int {
+func (m *Move) orderScore(board *Board, ttEntry *TTEntry, killers *[2]Move, twoPlyKillers *[2]Move, cutoffHistory *CutoffHeuristic) int {
+
+	// Check the TT table
+	if ttEntry != nil {
+		if ttEntry.move == *m {
+			return 10_000
+		}
+	}
+
+	// Check promotion
+	if m.promotion != NO_PIECE {
+		return 9_900
+	}
+
+	// Check the killer moves at this ply
+	if killers != nil {
+		if *m == (*killers)[0] {
+			return 895
+		}
+		if *m == (*killers)[1] {
+			return 894
+		}
+	}
+
+	// Check the killer moves at a previous ply
+	if twoPlyKillers != nil {
+		if *m == (*twoPlyKillers)[0] {
+			return 695
+		}
+		if *m == (*twoPlyKillers)[1] {
+			return 694
+		}
+	}
 
 	// Check move code
 	switch m.code {
@@ -196,19 +227,13 @@ func (m *Move) orderScore(board *Board, ttEntry *TTEntry) int {
 		// 5 more MVV-LVA as pawn capture pawn
 		return 905
 	case MOVE_CODE_CASTLE:
-		return 8
+		return 500
 	}
 
-	// Check the TT table
-	if ttEntry != nil {
-		if ttEntry.move == *m {
-			return 10000
-		}
-	}
-
-	// Check promotion
-	if m.promotion != NO_PIECE {
-		return 11
+	// Check cutoff history if given
+	// Caping this history cutoff at a score of 400
+	if cutoffHistory != nil {
+		return min(cutoffHistory[board.Turn][m.start][m.target], 400)
 	}
 
 	return 0
