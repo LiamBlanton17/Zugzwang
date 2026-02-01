@@ -299,8 +299,8 @@ func (b *Board) generatePseudoLegalMovesNegaMax(moves []Move, ttEntry *TTEntry) 
 	moveIdx := b.generatePseudoLegalMoves(moves)
 
 	// Precompute scores
-	var scores [256]int
-	for i := 0; i < moveIdx; i++ {
+	var scores [MAX_NUMBER_OF_MOVES_IN_A_POSITION]int
+	for i := range moveIdx {
 		scores[i] = moves[i].orderScore(b, ttEntry)
 	}
 

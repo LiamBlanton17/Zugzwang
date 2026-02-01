@@ -1,5 +1,7 @@
 package engine
 
+import "math/bits"
+
 /*
 This file holds all the functionality related to the evaluation of a static board
 */
@@ -59,5 +61,22 @@ func (b *Board) eval() Eval {
 	phaseSocre := b.getPhaseScore()
 
 	// Simple pst evaluation
-	return b.pstEval(phaseSocre)
+	eval := b.pstEval(phaseSocre)
+
+	// Simple tempo evaluation
+	if b.Turn == WHITE {
+		eval += 10
+	} else {
+		eval -= 10
+	}
+
+	// Simple bishop pair evaluation
+	if bits.OnesCount64(uint64(b.Pieces[WHITE][BISHOP])) >= 2 {
+		eval += 30
+	}
+	if bits.OnesCount64(uint64(b.Pieces[BLACK][BISHOP])) >= 2 {
+		eval -= 30
+	}
+
+	return eval
 }

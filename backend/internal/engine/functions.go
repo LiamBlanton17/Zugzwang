@@ -187,11 +187,6 @@ func (m Move) toString() string {
 // todo; this needs to get massively improved
 func (m *Move) orderScore(board *Board, ttEntry *TTEntry) int {
 
-	// Check promotion
-	if m.promotion != NO_PIECE {
-		return 11
-	}
-
 	// Check move code
 	switch m.code {
 	case MOVE_CODE_CAPTURE:
@@ -207,8 +202,13 @@ func (m *Move) orderScore(board *Board, ttEntry *TTEntry) int {
 	// Check the TT table
 	if ttEntry != nil {
 		if ttEntry.move == *m {
-			return 7
+			return 10000
 		}
+	}
+
+	// Check promotion
+	if m.promotion != NO_PIECE {
+		return 11
 	}
 
 	return 0
