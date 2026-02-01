@@ -31,6 +31,9 @@ func (b *Board) rootSearch(depth uint8, multithread bool) RootSearchResult {
 	// Setting up the killer moves
 	var killers Killers
 
+	// Setting up the history cutoff heuristic
+	var cutoffHistory CutoffHeuristic
+
 	// Setup the search
 	nodes := 1
 	bestEval := MIN_EVAL
@@ -54,7 +57,7 @@ func (b *Board) rootSearch(depth uint8, multithread bool) RootSearchResult {
 
 		// Search the new position and get the results
 		legalMovesFound = true
-		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack, &killers)
+		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack, &killers, &cutoffHistory)
 		b.unMakeMove(unmake)
 		resultEval := -result.best.eval
 		results = append(results, MoveEval{
@@ -99,7 +102,7 @@ type SearchResult struct {
 	best  MoveEval
 }
 
-func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack [][]Move, killers *Killers) SearchResult {
+func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack [][]Move, killers *Killers, cutoffHistory *CutoffHeuristic) SearchResult {
 
 	// checking for 3-fold repition
 	// if it is, the game is a draw
@@ -195,7 +198,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 
 	// Generate the pseudo legal moves to play, populating this plys move in the movestack
 	moves := moveStack[ply]
-	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, ttEntry, &(*killers)[ply], twoPlyKillers)
+	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, ttEntry, &(*killers)[ply], twoPlyKillers, cutoffHistory)
 	legalMovesFound := false
 	for _, move := range moves[:numberOfMoves] {
 
@@ -208,7 +211,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 
 		// Search the new position and get the results
 		legalMovesFound = true
-		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack, killers)
+		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack, killers, cutoffHistory)
 		b.unMakeMove(unmake)
 		resultEval := -result.best.eval
 		nodes += result.nodes
@@ -232,6 +235,9 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 					killers[ply][1] = killers[ply][0]
 					killers[ply][0] = move
 				}
+
+				// Update history of cutoffs as well (if not capture)
+				cutoffHistory[b.Turn][move.start][move.target] += int(depth)
 			}
 			break
 		}
@@ -322,7 +328,7 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 	}
 
 	moves := moveStack[ply]
-	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, nil, nil, nil)
+	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, nil, nil, nil, nil)
 	for _, move := range moves[:numberOfMoves] {
 
 		// Make sure the move was a capture

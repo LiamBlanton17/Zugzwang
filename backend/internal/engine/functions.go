@@ -184,7 +184,7 @@ func (m Move) toString() string {
 }
 
 // Get the move ordering score of the Move -- for move ordering
-func (m *Move) orderScore(board *Board, ttEntry *TTEntry, killers *[2]Move, twoPlyKillers *[2]Move) int {
+func (m *Move) orderScore(board *Board, ttEntry *TTEntry, killers *[2]Move, twoPlyKillers *[2]Move, cutoffHistory *CutoffHeuristic) int {
 
 	// Check the TT table
 	if ttEntry != nil {
@@ -228,6 +228,12 @@ func (m *Move) orderScore(board *Board, ttEntry *TTEntry, killers *[2]Move, twoP
 		return 905
 	case MOVE_CODE_CASTLE:
 		return 500
+	}
+
+	// Check cutoff history if given
+	// Caping this history cutoff at a score of 400
+	if cutoffHistory != nil {
+		return min(cutoffHistory[board.Turn][m.start][m.target], 400)
 	}
 
 	return 0

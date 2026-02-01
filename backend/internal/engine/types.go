@@ -63,6 +63,9 @@ type MoveEval struct {
 // Aliasing killer moves for better type safety
 type Killers [MAX_PLY][2]Move
 
+// Aliasing cutoff history hueristic for better type safety
+type CutoffHeuristic [NUM_COLORS][NUM_SQUARES][NUM_SQUARES]int
+
 // Defining mins and maxes for the eval type, this is close to max for 16-bit int but not there (to avoid overflow issues)
 const (
 	MAX_EVAL = Eval(27000)
