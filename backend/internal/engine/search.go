@@ -160,6 +160,17 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 			}
 			beta = min(beta, ttEntry.eval)
 		}
+
+		// Check if the ab-window closed
+		if alpha >= beta {
+			return SearchResult{
+				nodes: 1,
+				best: MoveEval{
+					move: ttEntry.move,
+					eval: ttEntry.eval,
+				},
+			}
+		}
 	}
 
 	// If at base condition, quiescence search
@@ -265,17 +276,6 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 // todo: should be upgraded to check for checks as well
 func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) SearchResult {
 
-	// b.eval is absolute: negative is good for black and psotive is good for white
-	// however, quiescenece and negamax need to return "context aware" evals
-	// as such, we need to negate the eval if the board we are evaluating is black
-	// negamax returns the score as relation to positive being good for the active play
-	// so we must flip blacks eval sign
-	// if no captures found, at end of quiescence search and should evaluate
-
-	// NOTE: Right now for whatever reason quiescence causes the engine to play significantly worse
-	// Its missing easy captures, pruning early, etc.
-	// For now, just evaluate and later improve the search.
-
 	// First, evalute the stand pat score of the position, the evaluation before doing any more captures
 	standPat := b.eval()
 	bestEval := standPat
@@ -315,7 +315,7 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 	for _, move := range moves[:numberOfMoves] {
 
 		// Make sure the move was a capture
-		if move.code != MOVE_CODE_CAPTURE {
+		if move.code != MOVE_CODE_CAPTURE || move.code == MOVE_CODE_EN_PASSANT {
 			continue
 		}
 
