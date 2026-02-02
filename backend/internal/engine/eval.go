@@ -124,27 +124,27 @@ func (b *Board) pawnStructureEval(phaseScore int) Eval {
 	blackPawns := b.Pieces[BLACK][PAWN]
 
 	// Doubled pawns
-	// Each doubled pawn will be worth a 11 centipawn penalty to 32 point penalty
+	// Each doubled pawn will be worth a 15 centipawn penalty to 36 point penalty
 	// The penalty increases as the game moves towards the engame
-	doubledPenalty := interpolatePhase(phaseScore, 11, 32)
+	doubledPenalty := interpolatePhase(phaseScore, 15, 36)
 	doubledWhite := doubledPawns(whitePawns)
 	doubledBlack := doubledPawns(blackPawns)
 	eval -= Eval(bits.OnesCount64(uint64(doubledWhite))) * doubledPenalty
 	eval += Eval(bits.OnesCount64(uint64(doubledBlack))) * doubledPenalty
 
 	// Isolated pawns
-	// Each isolated pawn will be worth a 16 centipawn penalty to 27 point penalty
+	// Each isolated pawn will be worth a 19 centipawn penalty to 31 point penalty
 	// The penalty increases as the game moves towards the engame
-	isolatedPenalty := interpolatePhase(phaseScore, 16, 27)
+	isolatedPenalty := interpolatePhase(phaseScore, 19, 31)
 	isolatedWhite := isolatedPawns(whitePawns)
 	isolatedBlack := isolatedPawns(blackPawns)
 	eval -= Eval(bits.OnesCount64(uint64(isolatedWhite))) * isolatedPenalty
 	eval += Eval(bits.OnesCount64(uint64(isolatedBlack))) * isolatedPenalty
 
 	// Passed pawns
-	// Each passed pawn will be worth a 11 centipawn bonus to 33 point bonus
+	// Each passed pawn will be worth a 15 centipawn bonus to 38 point bonus
 	// Potentially in the future make this row dependent scores
-	passedBonus := interpolatePhase(phaseScore, 11, 33)
+	passedBonus := interpolatePhase(phaseScore, 15, 38)
 	passedWhite := passedPawnsWhite(whitePawns, blackPawns)
 	passedBlack := passedPawnsBlack(blackPawns, whitePawns)
 	eval += Eval(passedWhite) * passedBonus
@@ -196,7 +196,7 @@ func doubledPawns(pawns BitBoard) int {
 func isolatedPawns(pawns BitBoard) BitBoard {
 	isolated := BitBoard(0)
 
-	for file := 0; file < 8; file++ {
+	for file := range 8 {
 		onFile := pawns & FileMask[file]
 
 		// Adjacent files
@@ -220,10 +220,10 @@ func (b *Board) kingSafetyEval(phaseScore int) Eval {
 	eval := Eval(0)
 
 	// Get phase scores
-	friendlyPawnScore := interpolatePhase(phaseScore, 15, 0)
-	enemyPawnScore := interpolatePhase(phaseScore, 11, 0)
-	friendlyPieceScore := interpolatePhase(phaseScore, 5, 0)
-	enemyPieceScore := interpolatePhase(phaseScore, 11, 0)
+	friendlyPawnScore := interpolatePhase(phaseScore, 17, 0)
+	enemyPawnScore := interpolatePhase(phaseScore, 13, 0)
+	friendlyPieceScore := interpolatePhase(phaseScore, 7, 0)
+	enemyPieceScore := interpolatePhase(phaseScore, 13, 0)
 
 	// Do white king safety
 	// Get the saftey mask, and check for white pawns/pieces and black pawns/pieces
