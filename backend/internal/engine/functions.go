@@ -187,56 +187,60 @@ func (m Move) toString() string {
 func (m *Move) orderScore(board *Board, ttEntry *TTEntry, killers *[2]Move, twoPlyKillers *[2]Move, cutoffHistory *CutoffHeuristic) int {
 
 	// Check the TT table
-	if ttEntry != nil {
-		if ttEntry.move == *m {
-			return 10_000
-		}
+	if ttEntry != nil && ttEntry.move == *m {
+		return 1_000_000
 	}
 
 	// Check promotion
 	if m.promotion != NO_PIECE {
-		return 9_900
+		return 900_000 + int(PIECE_VALUES[m.promotion])
 	}
 
-	// Check the killer moves at this ply
+	// Check captures MVV-LVA
+	if m.code == MOVE_CODE_CAPTURE {
+		return 800_000 + int((PIECE_VALUES[board.MailBox[m.target]]*10)-PIECE_VALUES[board.MailBox[m.start]])
+	}
+
+	// En passent is also a caputre
+	if m.code == MOVE_CODE_EN_PASSANT {
+		return 800_900
+	}
+
+	// Check killers
+	// Place killers in right below equal MVV-LVA (PAWN takes PAWN is 800_900, BISHOP takes PAWN is 800_700)
 	if killers != nil {
 		if *m == (*killers)[0] {
-			return 895
+			return 800_705
 		}
 		if *m == (*killers)[1] {
-			return 894
+			return 800_704
 		}
 	}
 
 	// Check the killer moves at a previous ply
+	// Place killers in right below equal MVV-LVA
 	if twoPlyKillers != nil {
 		if *m == (*twoPlyKillers)[0] {
-			return 595
+			return 800_703
 		}
 		if *m == (*twoPlyKillers)[1] {
-			return 594
+			return 800_702
 		}
 	}
 
-	// Check move code
-	switch m.code {
-	case MOVE_CODE_CAPTURE:
-		// MVV-LVA
-		return int((PIECE_VALUES[board.MailBox[m.target]] * 10) - PIECE_VALUES[board.MailBox[m.start]])
-	case MOVE_CODE_EN_PASSANT:
-		// 5 more MVV-LVA as pawn capture pawn
-		return 905
-	case MOVE_CODE_CASTLE:
-		return 500
-	}
-
-	// Check cutoff history if given
-	// Caping this history cutoff at a score of 400
+	// Check cutoff history
+	// Cap history to prevent it from overtaking killers/captures
+	score := 0
 	if cutoffHistory != nil {
-		return min(cutoffHistory[board.Turn][m.start][m.target], 400)
+		score = min(cutoffHistory[board.Turn][m.start][m.target], 650_000)
 	}
 
-	return 0
+	// Castling bonus - boost castling above regular quiet moves
+	if m.code == MOVE_CODE_CASTLE {
+		return score + 7_000
+	}
+
+	return score
 }
 
 // Helper function to get the index on a bitboard given some square number

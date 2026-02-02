@@ -81,7 +81,7 @@ const MAX_NUMBER_OF_MOVES_IN_A_POSITION = 256
 
 // Defining a delta margin to use in Delta Pruning in the Quiescence search
 // This is in centipawns
-const DELTA_MARGIN = 75
+const DELTA_MARGIN = 150
 
 // Defining the starting history length
 // This can be tweaked if needed, but shouldn't have too much of an effect on the performance

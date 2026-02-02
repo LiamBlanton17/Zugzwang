@@ -10,7 +10,7 @@ This file holds all the functionality related to the evaluation of a static boar
 const (
 	PAWN_VALUE   Eval = 100
 	KNIGHT_VALUE Eval = 300
-	BISHOP_VALUE Eval = 310
+	BISHOP_VALUE Eval = 300
 	ROOK_VALUE   Eval = 500
 	QUEEN_VALUE  Eval = 900
 	KING_VALUE   Eval = 20000
