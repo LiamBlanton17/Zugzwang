@@ -211,10 +211,10 @@ func (m *Move) orderScore(board *Board, ttEntry *TTEntry, killers *[2]Move, twoP
 	// Check the killer moves at a previous ply
 	if twoPlyKillers != nil {
 		if *m == (*twoPlyKillers)[0] {
-			return 695
+			return 595
 		}
 		if *m == (*twoPlyKillers)[1] {
-			return 694
+			return 594
 		}
 	}
 

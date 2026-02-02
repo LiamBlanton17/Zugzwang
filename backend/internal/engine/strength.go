@@ -33,6 +33,13 @@ func StrengthTest() {
 	// Positions to run the strength test on.
 	var positions []StrengthTestTest = []StrengthTestTest{
 		{
+			fen:           STARTING_POSITION_FEN,
+			stockfishEval: 20,
+			stockfishMove: "c4",
+			depth:         7,
+			rounds:        3,
+		},
+		{
 			fen:           "r1b1k2r/pp1n2pp/1qn1pp2/3pP3/1b1P1P2/3B1N2/PP1B2PP/R2QK1NR w KQkq - 4 11",
 			stockfishEval: 169,
 			stockfishMove: "Ne2",
@@ -117,7 +124,7 @@ func StrengthTest() {
 
 	for pi, position := range positions {
 		// Setup the starting board
-		fmt.Printf("Startin test of position %d.\n", pi+1)
+		fmt.Printf("Starting test of position %d.\n", pi+1)
 		board, _ := position.fen.toBoard(nil)
 		depth := position.depth
 		aggSearchTime := int64(0)
