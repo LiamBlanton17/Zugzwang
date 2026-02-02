@@ -231,7 +231,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 				}
 
 				// Update history of cutoffs as well (if not capture)
-				cutoffHistory[b.Turn][move.start][move.target] += int(depth)
+				cutoffHistory[b.Turn][move.start][move.target] += int(depth) * int(depth)
 			}
 			break
 		}

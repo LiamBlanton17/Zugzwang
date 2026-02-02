@@ -122,6 +122,10 @@ func StrengthTest() {
 	}
 	defer pprof.StopCPUProfile()
 
+	// Strength test totals
+	totalNodes := 0
+	totalSearchTime := 0
+
 	for pi, position := range positions {
 		// Setup the starting board
 		fmt.Printf("Starting test of position %d.\n", pi+1)
@@ -159,15 +163,29 @@ func StrengthTest() {
 			rounds--
 		}
 
-		// Print final results
+		// Print position results
 		aggSearchTime /= int64(position.rounds)
 		nps := float64(nodes) / (float64(aggSearchTime) / 1000.0)
 		mnps := nps / 1_000_000.0
-		board.print()
+		//board.print()
 		fmt.Printf("Stockfish move %v: eval %.3f\n", position.stockfishMove, float32(position.stockfishEval)/100)
 		fmt.Printf("Zugzwang move %v: eval %.3f\n", bestMove.toString(), float32(bestEval)/100)
 		fmt.Printf("The engine searched: %d nodes\n", nodes)
 		fmt.Printf("The time searched was: %d milliseconds\n", aggSearchTime)
 		fmt.Printf("The Mn/s was: %.3f\n\n", mnps)
+
+		// Update totals
+		totalNodes += nodes
+		totalSearchTime += int(aggSearchTime)
 	}
+
+	// Print final results
+	avgTotalNodes := totalNodes / len(positions)
+	avgTotalSearchTime := totalSearchTime / len(positions)
+	nps := float64(totalNodes) / (float64(totalSearchTime) / 1000.0)
+	mnps := nps / 1_000_000.0
+	fmt.Printf("---------------------\nFinal Results\n---------------------\n")
+	fmt.Printf("Average Nodes: %d\n", avgTotalNodes)
+	fmt.Printf("Average Search Time: %d\n", avgTotalSearchTime)
+	fmt.Printf("Average Mn/s: %.3f\n\n", mnps)
 }
