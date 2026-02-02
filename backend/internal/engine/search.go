@@ -71,14 +71,6 @@ func (b *Board) rootSearch(depth uint8, multithread bool) RootSearchResult {
 				alpha = resultEval
 			}
 		}
-
-		//fmt.Printf("Move: %v scored %d\n", move.toString(), resultEval)
-
-		// Failed soft on beta-cutoff, exit the search
-		// todo: remove this and beta, as beta never gets updated in rootSearch and thus this will not happen
-		if resultEval >= beta {
-			break
-		}
 	}
 
 	// Handle checkmate/stalemate
@@ -132,7 +124,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 		ttEntry = entry
 	}
 
-	// Return miss
+	// Check if tt was found and was depth of equal or greater
 	if ttEntry != nil && ttEntry.depth >= depth {
 
 		switch ttEntry.flag {
@@ -167,16 +159,6 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 				}
 			}
 			beta = min(beta, ttEntry.eval)
-		}
-
-		if alpha >= beta {
-			return SearchResult{
-				nodes: 1,
-				best: MoveEval{
-					move: ttEntry.move,
-					eval: ttEntry.eval,
-				},
-			}
 		}
 	}
 
@@ -213,6 +195,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 		legalMovesFound = true
 		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack, killers, cutoffHistory)
 		b.unMakeMove(unmake)
+
 		resultEval := -result.best.eval
 		nodes += result.nodes
 		if resultEval > bestEval {
@@ -224,7 +207,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 		}
 
 		// Failed soft on beta-cutoff, exit the search
-		if resultEval >= beta {
+		if resultEval > beta {
 			bestEval = resultEval
 			bestMove = move
 
