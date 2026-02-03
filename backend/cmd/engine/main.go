@@ -21,6 +21,8 @@ func main() {
 		engine.Perft()
 	case "strengthtest":
 		engine.StrengthTest()
+	case "benchmark":
+		engine.RunBenchmark()
 	default:
 		fmt.Println("The action is not supported: ", action)
 	}

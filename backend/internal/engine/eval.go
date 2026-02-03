@@ -254,13 +254,94 @@ func (b *Board) kingSafetyEval(phaseScore int) Eval {
 	return eval
 }
 
+// Function to evaluate open file control (rooks/queens/kings on open files)
+func (b *Board) fileBasedEval(phaseScore int) Eval {
+	eval := Eval(0)
+
+	bonusForRookYourSemi := interpolatePhase(phaseScore, 11, 23)
+	bonusForRookOppSemi := interpolatePhase(phaseScore, 7, 16)
+	bonusForRookFull := interpolatePhase(phaseScore, 19, 26)
+	bonusForQueenYourSemi := interpolatePhase(phaseScore, 7, 14)
+	bonusForQueenOppSemi := interpolatePhase(phaseScore, 4, 10)
+	bonusForQueenFull := interpolatePhase(phaseScore, 9, 17)
+	penaltyForKingYourSemi := interpolatePhase(phaseScore, 22, 0)
+	penaltyForKingOppSemi := interpolatePhase(phaseScore, 17, 0)
+	penaltyForKingFull := interpolatePhase(phaseScore, 32, 0)
+
+	for file := range 8 {
+		mask := FileMask[file]
+		hasWhitePawn := (b.Pieces[WHITE][PAWN] & mask) != 0
+		hasBlackPawn := (b.Pieces[BLACK][PAWN] & mask) != 0
+		whiteRooks := Eval(bits.OnesCount64(uint64(b.Pieces[WHITE][ROOK] & mask)))
+		blackRooks := Eval(bits.OnesCount64(uint64(b.Pieces[BLACK][ROOK] & mask)))
+		whiteQueen := Eval(bits.OnesCount64(uint64(b.Pieces[WHITE][QUEEN] & mask)))
+		blackQueen := Eval(bits.OnesCount64(uint64(b.Pieces[BLACK][QUEEN] & mask)))
+		hasWhiteKing := (b.Pieces[WHITE][KING] & mask) != 0
+		hasBlackKing := (b.Pieces[BLACK][KING] & mask) != 0
+
+		fullOpen := !hasWhitePawn && !hasBlackPawn
+		whiteSemiOpen := !hasWhitePawn && hasBlackPawn
+		blackSemiOpen := !hasBlackPawn && hasWhitePawn
+
+		// Full open
+		if fullOpen {
+			eval += whiteRooks * bonusForRookFull
+			eval -= blackRooks * bonusForRookFull
+			eval += whiteQueen * bonusForQueenFull
+			eval -= blackQueen * bonusForQueenFull
+
+			if hasWhiteKing {
+				eval -= penaltyForKingFull
+			}
+			if hasBlackKing {
+				eval += penaltyForKingFull
+			}
+
+		}
+
+		// White semi open
+		if whiteSemiOpen {
+			eval += whiteRooks * bonusForRookYourSemi
+			eval -= blackRooks * bonusForRookOppSemi
+			eval += whiteQueen * bonusForQueenYourSemi
+			eval -= blackQueen * bonusForQueenOppSemi
+
+			if hasWhiteKing {
+				eval -= penaltyForKingYourSemi
+			}
+			if hasBlackKing {
+				eval += penaltyForKingOppSemi
+			}
+
+		}
+
+		// Black semi open
+		if blackSemiOpen {
+			eval += whiteRooks * bonusForRookOppSemi
+			eval -= blackRooks * bonusForRookYourSemi
+			eval += whiteQueen * bonusForQueenOppSemi
+			eval -= blackQueen * bonusForQueenYourSemi
+
+			if hasWhiteKing {
+				eval -= penaltyForKingOppSemi
+			}
+			if hasBlackKing {
+				eval += penaltyForKingYourSemi
+			}
+
+		}
+	}
+
+	return eval
+}
+
 // Main evaluation function, to be called by the searching algorithm
 func (b *Board) eval() Eval {
 	// Get the current phase of the board
-	phaseSocre := b.getPhaseScore()
+	phaseScore := b.getPhaseScore()
 
 	// Simple pst evaluation
-	eval := b.pstEval(phaseSocre)
+	eval := b.pstEval(phaseScore)
 
 	// Simple tempo evaluation
 	if b.Turn == WHITE {
@@ -278,10 +359,13 @@ func (b *Board) eval() Eval {
 	}
 
 	// Do pawn structure eval
-	eval += b.pawnStructureEval(phaseSocre)
+	eval += b.pawnStructureEval(phaseScore)
 
 	// Do king safety
-	eval += b.kingSafetyEval(phaseSocre)
+	eval += b.kingSafetyEval(phaseScore)
+
+	// Do file based eval
+	eval += b.fileBasedEval(phaseScore)
 
 	return eval
 }

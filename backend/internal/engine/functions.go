@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/bits"
 	"math/rand"
+	"regexp"
+	"strings"
 )
 
 /*
@@ -181,6 +183,169 @@ func (m Move) toString() string {
 	}
 
 	return fmt.Sprintf("(%v to %v) (promotion: %v) (code: %v)", start, target, promotion, codeStr)
+}
+
+// Converts a move to the pure cordniates notations (PCN)
+func (m Move) toPCN() string {
+	promo := ""
+	if m.promotion != NO_PIECE {
+		promo = m.promotion.toString(BLACK)
+	}
+	return fmt.Sprintf("%v%v%v", m.start.toString(), m.target.toString(), promo)
+}
+
+// Converts a string of SAN to PCN
+// Regex to break down SAN:
+// 1: Piece (NBKRQ or empty for pawn)
+// 2: Disambiguation (file a-h or rank 1-8, or both)
+// 3: Capture 'x' (optional, ignored)
+// 4: Target Square (e.g. e4)
+// 5: Promotion (e.g. =Q)
+// 6: Check/Mate (+/#, optional)
+var sanRegex = regexp.MustCompile(`^([NBKRQ])?([a-h1-8]{1,2})?x?([a-h][1-8])(=[NBRQ])?(\+|#)?$`)
+
+func (b *Board) SanToPCN(san string) (string, error) {
+	// 1. Handle Castling explicitly
+	if san == "O-O" {
+		return "e1g1", nil
+	}
+	if san == "O-O-O" {
+		return "e1c1", nil
+	}
+	if san == "o-o" {
+		return "e8g8", nil
+	}
+	if san == "o-o-o" {
+		return "e8c8", nil
+	}
+
+	// 2. Parse the SAN string
+	matches := sanRegex.FindStringSubmatch(san)
+	if matches == nil {
+		return "", fmt.Errorf("invalid SAN format: %s", san)
+	}
+
+	pieceChar := matches[1]      // "N", "B", etc. (Empty for Pawn)
+	disambiguation := matches[2] // "a", "1", "bd", etc.
+	targetStr := matches[3]      // "e4"
+	promotionStr := matches[4]   // "=Q"
+
+	// Convert target string to square index (0-63)
+	targetSq, _ := stringToSquare(targetStr)
+
+	// Determine the piece type we are looking for
+	targetPieceType := PAWN
+	if pieceChar != "" {
+		switch pieceChar {
+		case "N":
+			targetPieceType = KNIGHT
+		case "B":
+			targetPieceType = BISHOP
+		case "R":
+			targetPieceType = ROOK
+		case "Q":
+			targetPieceType = QUEEN
+		case "K":
+			targetPieceType = KING
+		}
+	}
+
+	// 3. Generate all legal moves to find the candidate
+	// (Assuming you have a GenerateLegalMoves method)
+	moves := make([]Move, 256)
+	numberOfMoves := b.generatePseudoLegalMoves(moves)
+
+	var candidate Move
+	found := false
+
+	for _, m := range moves[:numberOfMoves] {
+		unmake, isLegal := b.makeMove(m)
+		if !isLegal {
+			b.unMakeMove(unmake)
+			continue
+		}
+		b.unMakeMove(unmake)
+
+		// A. Check Target Square
+		if m.target != targetSq {
+			continue
+		}
+
+		// B. Check Piece Type
+		// We need to look at what piece is currently on the start square
+		movingPiece := b.MailBox[m.start]
+		// Extract type (0-5) from your internal Piece byte
+		if movingPiece != targetPieceType {
+			continue
+		}
+
+		// C. Check Promotion (if applicable)
+		if promotionStr != "" {
+			// promotionStr is "=Q", we need to check if move promotes to Queen
+			wantedPromo := QUEEN
+			switch promotionStr {
+			case "=N":
+				wantedPromo = KNIGHT
+			case "=B":
+				wantedPromo = BISHOP
+			case "=R":
+				wantedPromo = ROOK
+			}
+			if m.promotion != wantedPromo {
+				continue
+			}
+		} else if m.promotion != NO_PIECE {
+			// If SAN didn't specify promotion, but this move is a promotion, skip it
+			// (e.g., SAN "e8" shouldn't match a move that is "e7e8q")
+			continue
+		}
+
+		// D. Check Disambiguation (e.g. "Nbd7" -> start file must be 'b')
+		if disambiguation != "" {
+			startSqStr := m.start.toString()
+			startFile := string(startSqStr[0])
+			startRank := string(startSqStr[1])
+
+			// If disambiguation contains file (letter)
+			if strings.ContainsAny(disambiguation, "abcdefgh") {
+				if !strings.Contains(startFile, disambiguation) && !strings.Contains(disambiguation, startFile) {
+					// Checking containment handles full "e2" disambiguation cases
+					if !strings.HasSuffix(disambiguation, startFile) && !strings.HasPrefix(disambiguation, startFile) {
+						// Simple check: does the start file match the disambiguation char?
+						if !strings.Contains(disambiguation, startFile) {
+							continue
+						}
+					}
+				}
+			}
+			// If disambiguation contains rank (number)
+			if strings.ContainsAny(disambiguation, "12345678") {
+				if !strings.Contains(disambiguation, startRank) {
+					continue
+				}
+			}
+		}
+
+		// Found a match!
+		candidate = m
+		found = true
+		break
+	}
+
+	if !found {
+		return "", fmt.Errorf("no legal move found for %s", san)
+	}
+
+	// 4. Convert the found move to PCN string (e.g., "e2e4" or "a7a8q")
+	startStr := candidate.start.toString()
+	finalTargetStr := candidate.target.toString()
+	promoSuffix := ""
+	if candidate.promotion != NO_PIECE {
+		// PCN usually uses lowercase for promotion (e.g., e7e8q)
+		promoSuffix = strings.ToLower(candidate.promotion.toString(BLACK))
+	}
+
+	return startStr + finalTargetStr + promoSuffix, nil
 }
 
 // Get the move ordering score of the Move -- for move ordering
