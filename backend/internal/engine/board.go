@@ -48,16 +48,12 @@ func (position FEN) toBoard(history []FEN) (*Board, error) {
 	}
 
 	// Setup castling
-	// If not of length 4, then no castling rights
 	board.CR = 0
-	if len(castling) == 4 {
-		// This is more condensed than 4 if statements, but it could accept invalid FENs
-		// KQkq is the correct order, but this would accept them out of order, like kQKq
-		// This is mostly fine. Maybe in future can just be verbose and check each character one by one
-		for s, v := range map[rune]uint8{CHAR_WK: CASTLE_WK, CHAR_WQ: CASTLE_WQ, CHAR_BK: CASTLE_BK, CHAR_BQ: CASTLE_BQ} {
-			if strings.Contains(castling, string(s)) {
-				board.CR |= v
-			}
+	// KQkq is the correct order, but this would accept them out of order, like kQKq
+	// This is mostly fine. Maybe in future can just be verbose and check each character one by one
+	for s, v := range map[rune]uint8{CHAR_WK: CASTLE_WK, CHAR_WQ: CASTLE_WQ, CHAR_BK: CASTLE_BK, CHAR_BQ: CASTLE_BQ} {
+		if strings.Contains(castling, string(s)) {
+			board.CR |= v
 		}
 	}
 
@@ -251,8 +247,8 @@ func (b *Board) search(numberOfMoves int) BoardSearchResults {
 // DO NOT USE THIS IN THE SEARCH OR ENGINE HOTPATH
 // This should only be used for giving the frontend the legal moves in a position
 func (b *Board) generateLegalMoves() []Move {
-	moves := make([]Move, 0, MAX_NUMBER_OF_MOVES_IN_A_POSITION)
-	legalMoves := make([]Move, 0, MAX_NUMBER_OF_MOVES_IN_A_POSITION)
+	moves := make([]Move, MAX_NUMBER_OF_MOVES_IN_A_POSITION)
+	legalMoves := make([]Move, MAX_NUMBER_OF_MOVES_IN_A_POSITION)
 	numberOfMoves := b.generatePseudoLegalMoves(moves)
 
 	for i := range moves[:numberOfMoves] {
