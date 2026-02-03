@@ -41,9 +41,22 @@ func (b *Board) rootSearch(depth uint8, multithread bool) RootSearchResult {
 	beta := MAX_EVAL
 	ply := uint8(0)
 
+	// Check the TT table
+	// This is not to prevent the entire root search, but to help move ordering
+	var ttEntry *TTEntry = nil
+
+	// Compute the TT key
+	key := b.Zobrist & (TT_SIZE - 1)
+
+	// Get the entry and return hit
+	entry := &TT[key]
+	if entry.zobrist == b.Zobrist {
+		ttEntry = entry
+	}
+
 	// Generate the pseudo legal moves to play, populating this depths move in the movestack
 	moves := moveStack[ply]
-	numberOfMoves := b.generatePseudoLegalMoves(moves)
+	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, ttEntry, nil, nil, nil)
 	results := make([]MoveEval, 0, numberOfMoves)
 	legalMovesFound := false
 	for _, move := range moves[:numberOfMoves] {
@@ -188,12 +201,13 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 	if ply >= 2 {
 		twoPlyKillers = &(*killers)[ply-1]
 	}
+	thisKillers := (*killers)[ply]
 
 	// Generate the pseudo legal moves to play, populating this plys move in the movestack
 	moves := moveStack[ply]
-	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, ttEntry, &(*killers)[ply], twoPlyKillers, cutoffHistory)
+	numberOfMoves := b.generatePseudoLegalMovesWithOrdering(moves, ttEntry, &thisKillers, twoPlyKillers, cutoffHistory)
 	legalMovesFound := false
-	for _, move := range moves[:numberOfMoves] {
+	for i, move := range moves[:numberOfMoves] {
 
 		// Make the move and see if it was legal
 		unmake, isLegal := b.makeMove(move)
@@ -202,13 +216,31 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 			continue
 		}
 
+		// Using late move reduction
+		// Speeds up search 10x, costs 0.80 points on the benchmark test
+		betaSearch := beta
+		reduction := uint8(0)
+		if i > 10 && depth > 2 && move.code != MOVE_CODE_CAPTURE && move != thisKillers[0] && move != thisKillers[1] {
+			reduction = 1
+			betaSearch = alpha + 1
+
+			if i > 20 && depth > 2 {
+				reduction = 2
+			}
+		}
+
 		// Search the new position and get the results
 		legalMovesFound = true
-		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack, killers, cutoffHistory)
-		b.unMakeMove(unmake)
-
+		result := b.abnegamax(ply+1, depth-1-reduction, -betaSearch, -alpha, moveStack, killers, cutoffHistory)
 		resultEval := -result.best.eval
 		nodes += result.nodes
+
+		// If the engine reduced and the engine exceeded alpha, the engine needs to research at a full depth
+		if resultEval > alpha && resultEval < beta && reduction > 0 {
+			result = b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack, killers, cutoffHistory)
+		}
+
+		b.unMakeMove(unmake)
 		if resultEval > bestEval {
 			bestEval = resultEval
 			bestMove = move
