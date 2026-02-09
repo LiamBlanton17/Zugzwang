@@ -1,2 +1,2 @@
-/frontend/node_modules
 backend/cmd/engine/cpu.prof
+backend/internal/platform/sqlite/sqlite.db
