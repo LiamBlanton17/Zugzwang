@@ -33,7 +33,7 @@ func main() {
 	 * desrciption: the main frontend endpoint
 	 * returns: HTML for the main layout
 	 */
-	r.GET("/", frontend.HTMLIndex)
+	r.GET("/", frontend.HandleIndex)
 
 	/*
 	 *	route: "/setup"

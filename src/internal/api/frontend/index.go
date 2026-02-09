@@ -4,6 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func HTMLIndex(c *gin.Context) {
+func HandleIndex(c *gin.Context) {
 
 }
