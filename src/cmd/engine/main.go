@@ -1,9 +1,9 @@
 package main
 
 import (
-	"backend/internal/engine"
 	"flag"
 	"fmt"
+	"zugzwang/internal/engine"
 )
 
 /*

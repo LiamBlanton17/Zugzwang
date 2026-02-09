@@ -1,7 +1,7 @@
 package main
 
 import (
-	"backend/internal/engine"
+	"zugzwang/internal/engine"
 
 	"fmt"
 	"math/bits"
