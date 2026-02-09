@@ -45,6 +45,10 @@ func CreateGame(name string, elo int, ctx context.Context) (string, error) {
 		return "", err
 	}
 
+	if activeCount >= MAX_ACTIVE_GAMES {
+		return "", fmt.Errorf("Too many games")
+	}
+
 	id := uuid.NewString()
 	query := "INSERT INTO games (ID, Name, Elo, Status) VALUES (?, ?, ?, 'Pending')"
 	_, err = db.ExecContext(ctx, query, id, name, elo)
@@ -54,4 +58,34 @@ func CreateGame(name string, elo int, ctx context.Context) (string, error) {
 	}
 
 	return id, nil
+}
+
+// Function used to start a new game
+func StartGame(gameId string, ctx context.Context) error {
+
+	var activeCount int
+	err := db.QueryRowContext(ctx, "SELECT COUNT(*) AS ActiveGames FROM games WHERE Status IN ('Active', 'Pending')").Scan(&activeCount)
+	if err != nil {
+		return err
+	}
+
+	if activeCount >= MAX_ACTIVE_GAMES {
+		return fmt.Errorf("Too many games")
+	}
+
+	err = db.QueryRowContext(ctx, "SELECT 1 FROM games WHERE Status = 'Pending' AND GameID = ?", gameId).Scan()
+	if err != nil {
+		// Caller should check for sql.ErrNoRows too
+		if err == sql.ErrNoRows {
+			fmt.Println("Game ID does not exist")
+		}
+		return err
+	}
+
+	_, err = db.ExecContext(ctx, "UPDATE games SET Status = 'Active' WHERE GameID = ?", gameId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

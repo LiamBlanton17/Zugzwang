@@ -9,5 +9,6 @@ import "github.com/gin-gonic/gin"
  *  returns: Either an error that the game could not be started, or upgrades to a WS connection
  */
 func HandleGame(c *gin.Context) {
-	//gameId := c.Param("game_id")
+	gameId := c.Param("game_id")
+
 }
