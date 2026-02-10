@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	_ "modernc.org/sqlite"
+
 	"github.com/google/uuid"
 )
 
@@ -18,7 +20,7 @@ var db *sql.DB
 
 func InitDB() error {
 	// Attempt the connection
-	tempdb, err := sql.Open("sqlite3", "./sqlite/sqlite.db")
+	tempdb, err := sql.Open("sqlite", "./sqlite/sqlite.db")
 	if err != nil {
 		return err
 	}
