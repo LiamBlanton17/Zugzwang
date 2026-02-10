@@ -36,6 +36,14 @@ func main() {
 	r.GET("/", frontend.HandleIndex)
 
 	/*
+	 * route: "/learn-more"
+	 * method: "GET"
+	 * desrciption: the learn more page frontend endpoint
+	 * returns: HTML for the learn more
+	 */
+	r.GET("/learn-more", frontend.HandleLearnMore)
+
+	/*
 	 *	route: "/setup"
 	 *  method: "POST"
 	 *	description: Called by the frontend to request to setup a game

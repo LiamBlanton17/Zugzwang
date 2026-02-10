@@ -9,16 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func HandleIndex(c *gin.Context) {
+func HandleLearnMore(c *gin.Context) {
 	// Check if it's an HTMX request
 	isHTMX := c.GetHeader("HX-Request") == "true"
 
 	// Get component, wrap if not htmx
 	var component templ.Component
 	if isHTMX {
-		component = pages.Index()
+		component = pages.LearnMore()
 	} else {
-		component = layouts.MainLayout(pages.Index(), "ZugZwang")
+		component = layouts.MainLayout(pages.LearnMore(), "ZugZwang")
 	}
 
 	// Set Header and Render
