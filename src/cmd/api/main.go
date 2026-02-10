@@ -25,6 +25,7 @@ func main() {
 	r := gin.Default()
 
 	// Setup static file handling
+	r.Static("/static", "./static")
 
 	/*
 	 * route: "/"
