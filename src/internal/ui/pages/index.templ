@@ -14,17 +14,9 @@ templ Index() {
                 <label for="elo">Elo</label>
                 <input class="mt-1 w-100" id="elo" name="elo" type="number" />
             </div>
-            <div class="d-flex flex-column mt-3 w-25">
-                <label for="strength">Engine Strength (Estimated ELO not availible yet)</label>
-                <select class="mt-1 w-100" id="strength" name="strength">
-                    <option value="Weak">Weak</option>
-                    <option value="Good">Good</option>
-                    <option value="Strong">Strong</option>
-                </select>
-            </div>
         </div>
         <div class="d-flex flex-row align-items-center justify-content-center gap-2 mt-4">
-            <button class="btn-primary">
+            <button class="btn-primary" id="start-game">
                 Start Game
             </button>
             <button class="btn-secondary" hx-get="/learn-more" hx-target="#root" hx-push-url="true">

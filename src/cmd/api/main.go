@@ -49,7 +49,7 @@ func main() {
 	 *	description: Called by the frontend to request to setup a game
 	 *	returns: Either an error that the game could not be setup, or success with a game id
 	 */
-	r.POST("/api/setup", backend.HandleSetup)
+	r.POST("/setup", backend.HandleSetup)
 
 	/*
 	 *	route: "/start/{game_id}"
@@ -57,7 +57,7 @@ func main() {
 	 *	desrciption: Called by the frontend to request to start a game
 	 *  returns: Either an error that the game could not be started, or upgrades to a WS connection
 	 */
-	r.GET("/api/start/:game_id", backend.HandleGame)
+	r.GET("/start/:game_id", backend.HandleGame)
 
 	// Run the router
 	if err := r.Run(":8067"); err != nil {
