@@ -52,7 +52,7 @@ func main() {
 	r.GET("/api/start/:game_id", backend.HandleGame)
 
 	// Run the router
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run(":8067"); err != nil {
 		fmt.Println(err)
 	}
 
