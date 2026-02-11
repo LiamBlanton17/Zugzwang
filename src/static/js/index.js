@@ -71,6 +71,9 @@ $(() => {
     // Function to start the game via a websocket
     async function startGameWS(gameId) {
 
+        // not implemented yet
+        return;
+
         // Define the websocket connection
         const ws = new WebSocket(`ws://localhost/start/${gameId}`);
 
