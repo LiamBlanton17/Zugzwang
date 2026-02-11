@@ -37,7 +37,7 @@ func InitDB() error {
 
 // Function used to create a new game
 // Validates we only have so many active games
-const MAX_ACTIVE_GAMES = 10
+const MAX_ACTIVE_GAMES = 100
 
 func CreateGame(name string, elo int, ctx context.Context) (string, error) {
 
