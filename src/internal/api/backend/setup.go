@@ -1,9 +1,9 @@
-package api
+package backend
 
 import (
-	"backend/internal/platform"
 	"fmt"
 	"net/http"
+	"zugzwang/internal/platform"
 
 	"github.com/gin-gonic/gin"
 )

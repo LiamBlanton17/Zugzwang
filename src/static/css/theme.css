@@ -1,0 +1,111 @@
+:root {
+  /* hsl (fallback color) */
+  --bg-dark: hsl(18 90% 1%);
+  --bg: hsl(23 63% 4%);
+  --bg-light: hsl(30, 51%, 52%);
+  --text: hsl(26 100% 94%);
+  --text-muted: hsl(26 28% 68%);
+  --highlight: hsl(26 21% 38%);
+  --border: hsl(27 28% 27%);
+  --border-muted: hsl(27 42% 17%);
+  --primary: hsl(27 65% 66%);
+  --secondary: hsl(204 74% 69%);
+  --danger: hsl(9 26% 64%);
+  --warning: hsl(52 19% 57%);
+  --success: hsl(146 17% 59%);
+  --info: hsl(217 28% 65%);
+
+  /* oklch */
+  --bg-dark: oklch(0.1 0.02 60);
+  --bg: oklch(0.15 0.02 60);
+  --bg-light: oklch(0.2 0.02 60);
+  --text: oklch(0.96 0.04 60);
+  --text-muted: oklch(0.76 0.04 60);
+  --highlight: oklch(0.5 0.04 60);
+  --border: oklch(0.4 0.04 60);
+  --border-muted: oklch(0.3 0.04 60);
+  --primary: oklch(0.76 0.1 60);
+  --secondary: oklch(0.76 0.1 240);
+  --danger: oklch(0.7 0.05 30);
+  --warning: oklch(0.7 0.05 100);
+  --success: oklch(0.7 0.05 160);
+  --info: oklch(0.7 0.05 260);
+}
+
+body.light {
+  /* hsl (fallback color) */
+  --bg-dark: hsl(26 42% 89%);
+  --bg: hsl(26 82% 94%);
+  --bg-light: hsl(26 100% 100%);
+  --text: hsl(19 100% 4%);
+  --text-muted: hsl(27 28% 27%);
+  --highlight: hsl(26 100% 99%);
+  --border: hsl(26 17% 49%);
+  --border-muted: hsl(26 22% 61%);
+  --primary: hsl(33 100% 20%);
+  --secondary: hsl(199 100% 20%);
+  --danger: hsl(9 21% 41%);
+  --warning: hsl(52 23% 34%);
+  --success: hsl(147 19% 36%);
+  --info: hsl(217 22% 41%);
+
+  /* oklch */
+  --bg-dark: oklch(0.92 0.02 60);
+  --bg: oklch(0.96 0.02 60);
+  --bg-light: oklch(1 0.02 60);
+  --text: oklch(0.15 0.04 60);
+  --text-muted: oklch(0.4 0.04 60);
+  --highlight: oklch(1 0.04 60);
+  --border: oklch(0.6 0.04 60);
+  --border-muted: oklch(0.7 0.04 60);
+  --primary: oklch(0.4 0.1 60);
+  --secondary: oklch(0.4 0.1 240);
+  --danger: oklch(0.5 0.05 30);
+  --warning: oklch(0.5 0.05 100);
+  --success: oklch(0.5 0.05 160);
+  --info: oklch(0.5 0.05 260);
+}
+
+/* Theme classes */
+.bg-dark {
+  background-color: var(--bg-dark);
+}
+.bg {
+  background-color: var(--bg);
+}
+.bg-light {
+  background-color: var(--bg-light);
+}
+.text {
+  color: var(--text);
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.highlight {
+  background-color: var(--highlight);
+}
+.border {
+  border-color: var(--border);
+}
+.border-muted {
+  border-color: var(--border-muted);
+}
+.primary {
+  background-color: var(--primary);
+}
+.secondary {
+  background-color: var(--secondary);
+}
+.danger {
+  background-color: var(--danger);
+}
+.warning {
+  background-color: var(--warning);
+}
+.success {
+  background-color: var(--success);
+}
+.info {
+  background-color: var(--info);
+}
