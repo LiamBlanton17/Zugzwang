@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Starting backend API.")
+	fmt.Println("Starting application.")
 
 	// Setup the DB
 	err := platform.InitDB()
@@ -42,6 +42,14 @@ func main() {
 	 * returns: HTML for the learn more
 	 */
 	r.GET("/learn-more", frontend.HandleLearnMore)
+
+	/*
+	 * route: "/game"
+	 * method: "GET"
+	 * description: the game page frontend endpoint
+	 * returns: HTML for the game UI
+	 */
+	r.GET("/game", frontend.HandleGame)
 
 	/*
 	 *	route: "/setup"
