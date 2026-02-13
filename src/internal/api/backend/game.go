@@ -62,7 +62,6 @@ type gameState struct {
 	board       *engine.Board
 	playerColor engine.Color
 	engineColor engine.Color
-	currentTurn engine.Color
 }
 
 // Function to perform the game loop with the websocket
@@ -82,7 +81,6 @@ func gameLoop(ws *websocket.Conn) {
 	}
 	state.playerColor = playerColor
 	state.engineColor = engineColor
-	state.currentTurn = engine.WHITE
 
 	// Setting depth to just 7 ply as a default for not, likely refactor to be time constrained
 	const depth = 7
@@ -91,12 +89,12 @@ func gameLoop(ws *websocket.Conn) {
 	for {
 
 		// Engines turn
-		if state.engineColor == state.currentTurn {
+		if state.engineColor == state.board.Turn {
 			result := state.board.RootSearch(depth, false) // false heres means don't multithread
 
 			// Get the moves and sort them
 			moveResults := result.Moves
-			slices.SortFunc(result.Moves, func(a, b MoveEval) int {
+			slices.SortFunc(moveResults, func(a engine.MoveEval, b engine.MoveEval) int {
 				return cmp.Compare(b.Eval, a.Eval)
 			})
 
@@ -106,12 +104,52 @@ func gameLoop(ws *websocket.Conn) {
 				bestEval *= -1
 			}
 			bestMove := moveResults[0].Move
+
+			// Todo: in future select the second or third best move based on some math equation
+
+			// Make the move (this handles everything, including swapping the board colors)
+			state.board.Move(bestMove)
+
+			// Send that move over the web socket
+			ws.WriteMessage(websocket.TextMessage, bestMove.ToBytes())
+
 		}
 
 		// Players turn
-		if state.playerColor == state.currentTurn {
+		if state.playerColor == state.board.Turn {
 
+			// Get the legal moves in the position, and send them to the client
+			moves := state.board.GenerateLegalMoves()
+
+			// Send those to the client
+			for _, move := range moves {
+				ws.WriteMessage(websocket.TextMessage, move.ToBytes())
+			}
+
+			// Read their move in
+			_, msg, err := ws.ReadMessage()
+			if err != nil {
+				fmt.Println("Websocket error, trying to read the clients move")
+				return
+			}
+
+			// Message is expected to be a length of 1 byte, corresponding to the index in the list of moves sent
+			if len(msg) != 1 {
+				fmt.Println("Websocket error, invalid move sent by client")
+				return
+			}
+
+			moveIdx := int(msg[0])
+			if moveIdx >= len(moves) {
+				fmt.Println("Websocket error, invalid move sent by client")
+				return
+			}
+			playerMove := moves[moveIdx]
+
+			// Make the move
+			state.board.Move(playerMove)
 		}
+
 	}
 
 }

@@ -246,7 +246,7 @@ func (b *Board) search(numberOfMoves int) BoardSearchResults {
 // This function generates all legal moves in a position
 // DO NOT USE THIS IN THE SEARCH OR ENGINE HOTPATH
 // This should only be used for giving the frontend the legal moves in a position
-func (b *Board) generateLegalMoves() []Move {
+func (b *Board) GenerateLegalMoves() []Move {
 	moves := make([]Move, MAX_NUMBER_OF_MOVES_IN_A_POSITION)
 	legalMoves := make([]Move, MAX_NUMBER_OF_MOVES_IN_A_POSITION)
 	numberOfMoves := b.generatePseudoLegalMoves(moves)
@@ -447,6 +447,12 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 
 	// Update either color occupancy
 	b.Occupancy[EITHER_COLOR] = (b.Occupancy[WHITE] | b.Occupancy[BLACK])
+}
+
+// This is the external make move function, used by the backend api to handle game state
+// Assumes the move is legal
+func (b *Board) Move(move Move) {
+	b.makeMove(move)
 }
 
 // This function makes a move, in-place, on a board, and returns if that move was legal or not
