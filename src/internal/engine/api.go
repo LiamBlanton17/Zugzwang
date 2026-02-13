@@ -22,7 +22,7 @@ func Evalute(position FEN, history []FEN, numberOfMoves int) (*EvaluateResponse,
 
 	// Build the board from the position
 	// This can fail if position is not a valid FEN string
-	board, err := position.toBoard(history)
+	board, err := position.ToBoard(history)
 	if err != nil {
 		return nil, err
 	}

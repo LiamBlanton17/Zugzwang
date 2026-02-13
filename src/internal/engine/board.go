@@ -14,7 +14,7 @@ This file contains functionality related to setup, searching and evalution of a 
 // Take a FEN string and turn it into a board, ready for the engine to search over it
 // [BUG] FEN logic does not handle castling rights correct, as KQ is valid, but will result in no rights
 // [BUG] Should allow KQ, but for now just put in KQ-- and it works
-func (position FEN) toBoard(history []FEN) (*Board, error) {
+func (position FEN) ToBoard(history []FEN) (*Board, error) {
 	board := Board{}
 
 	// The starting FEN position is: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
@@ -223,7 +223,7 @@ func (b *Board) getEnemyPieces() BitBoard {
 
 func (b *Board) buildGameHistory(history []FEN) error {
 	for _, h := range history {
-		b, err := h.toBoard(nil)
+		b, err := h.ToBoard(nil)
 		if err != nil {
 			return err
 		}

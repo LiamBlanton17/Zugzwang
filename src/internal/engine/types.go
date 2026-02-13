@@ -56,8 +56,8 @@ const (
 
 // Aliasing a Move, Eval pair
 type MoveEval struct {
-	move Move
-	eval Eval
+	Move Move
+	Eval Eval
 }
 
 // Aliasing killer moves for better type safety

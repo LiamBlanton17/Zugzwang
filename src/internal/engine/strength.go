@@ -129,7 +129,7 @@ func StrengthTest() {
 	for pi, position := range positions {
 		// Setup the starting board
 		fmt.Printf("Starting test of position %d.\n", pi+1)
-		board, _ := position.fen.toBoard(nil)
+		board, _ := position.fen.ToBoard(nil)
 		depth := position.depth
 		aggSearchTime := int64(0)
 		nodes := 0
@@ -143,22 +143,22 @@ func StrengthTest() {
 
 			// search
 			timeStart := time.Now()
-			result := board.rootSearch(depth, false)
-			moveResults := result.moves
+			result := board.RootSearch(depth, false)
+			moveResults := result.Moves
 			aggSearchTime += time.Since(timeStart).Milliseconds()
-			nodes = result.nodes
+			nodes = result.Nodes
 
 			// Sort and get best result
 			slices.SortFunc(moveResults, func(a, b MoveEval) int {
-				return cmp.Compare(b.eval, a.eval)
+				return cmp.Compare(b.Eval, a.Eval)
 			})
 
 			// Eval needs to be context aware
-			bestEval = moveResults[0].eval
+			bestEval = moveResults[0].Eval
 			if board.Turn == BLACK {
 				bestEval *= -1
 			}
-			bestMove = moveResults[0].move
+			bestMove = moveResults[0].Move
 
 			rounds--
 		}
