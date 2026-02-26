@@ -39,6 +39,7 @@ func HandleSetup(c *gin.Context) {
 	gameId, err := database.CreateGame(setup.Name, setup.Elo, ctx)
 	if err != nil {
 		fmt.Println("Failed to create a new game.")
+		fmt.Println(err)
 
 		// Return generic error to user
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error."})

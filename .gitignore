@@ -1,3 +1,2 @@
 backend/cmd/engine/cpu.prof
-backend/internal/platform/sqlite/sqlite.db
-/src/sqlite
+/src/sqlite/sqlite.db

@@ -59,6 +59,18 @@ $(() => {
                 throw new Error('Response did not provide a game id');
             }
 
+            // Save game id to local storage
+            localStorage.setItem('gameId', gameId);
+            console.log(`Game ID: ${gameId}`);
+
+            // Redirect to the game page
+            const url = `/game/${gameId}`;
+            htmx.ajax('GET', url, {
+                target: '#root',
+                swap: 'innerHTML',
+                push: url,
+            });
+
         } catch (e) {
             alert('Something went wrong starting the game. Please try again.');
             console.log(e);

@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Todo: check game_id from the query param that it is a valid game, currently just validating client side
 func HandleGame(c *gin.Context) {
 	// Check if it's an HTMX request
 	isHTMX := c.GetHeader("HX-Request") == "true"

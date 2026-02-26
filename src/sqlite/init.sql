@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS "games";
+CREATE TABLE IF NOT EXISTS "games" (
+    "id" TEXT PRIMARY KEY,
+    "name" VARCHAR(255) NOT NULL,
+    "elo" INTEGER NOT NULL,
+    "status" VARCHAR(255) NOT NULL
+);

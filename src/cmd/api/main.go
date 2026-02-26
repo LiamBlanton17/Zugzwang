@@ -44,12 +44,12 @@ func main() {
 	r.GET("/learn-more", frontend.HandleLearnMore)
 
 	/*
-	 * route: "/game"
+	 * route: "/game/{game_id}"
 	 * method: "GET"
 	 * description: the game page frontend endpoint
 	 * returns: HTML for the game UI
 	 */
-	r.GET("/game", frontend.HandleGame)
+	r.GET("/game/:game_id", frontend.HandleGame)
 
 	/*
 	 *	route: "/setup"

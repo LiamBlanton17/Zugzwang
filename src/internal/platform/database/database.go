@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "modernc.org/sqlite"
 
@@ -18,15 +19,29 @@ import (
 // Forces SQL to be written in this package, which helps package boundaries
 var db *sql.DB
 
+const sqlitePath = "./sqlite/sqlite.db"
+const initDBPath = "./sqlite/init.sql"
+
 func InitDB() error {
 	// Attempt the connection
-	tempdb, err := sql.Open("sqlite", "./sqlite/sqlite.db")
+	tempdb, err := sql.Open("sqlite", sqlitePath)
 	if err != nil {
 		return err
 	}
 
 	// Verify the connection
 	if err := tempdb.Ping(); err != nil {
+		return err
+	}
+
+	// Run init database
+	sqlCode, err := os.ReadFile(initDBPath)
+	if err != nil {
+		return err
+	}
+
+	_, err = tempdb.Exec(string(sqlCode))
+	if err != nil {
 		return err
 	}
 
@@ -42,7 +57,7 @@ const MAX_ACTIVE_GAMES = 100
 func CreateGame(name string, elo int, ctx context.Context) (string, error) {
 
 	var activeCount int
-	err := db.QueryRowContext(ctx, "SELECT COUNT(*) AS ActiveGames FROM games WHERE Status IN ('Active', 'Pending')").Scan(&activeCount)
+	err := db.QueryRowContext(ctx, "SELECT COUNT(*) AS ActiveGames FROM games WHERE status IN ('Active', 'Pending')").Scan(&activeCount)
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +67,7 @@ func CreateGame(name string, elo int, ctx context.Context) (string, error) {
 	}
 
 	id := uuid.NewString()
-	query := "INSERT INTO games (ID, Name, Elo, Status) VALUES (?, ?, ?, 'Pending')"
+	query := "INSERT INTO games (id, name, elo, status) VALUES (?, ?, ?, 'Pending')"
 	_, err = db.ExecContext(ctx, query, id, name, elo)
 	if err != nil {
 		fmt.Println(err)
@@ -66,7 +81,7 @@ func CreateGame(name string, elo int, ctx context.Context) (string, error) {
 func StartGame(gameId string, ctx context.Context) error {
 
 	var activeCount int
-	err := db.QueryRowContext(ctx, "SELECT COUNT(*) AS ActiveGames FROM games WHERE Status IN ('Active', 'Pending')").Scan(&activeCount)
+	err := db.QueryRowContext(ctx, "SELECT COUNT(*) AS ActiveGames FROM games WHERE status IN ('Active', 'Pending')").Scan(&activeCount)
 	if err != nil {
 		return err
 	}
@@ -75,7 +90,7 @@ func StartGame(gameId string, ctx context.Context) error {
 		return fmt.Errorf("Too many games")
 	}
 
-	err = db.QueryRowContext(ctx, "SELECT 1 FROM games WHERE Status = 'Pending' AND GameID = ?", gameId).Scan()
+	err = db.QueryRowContext(ctx, "SELECT 1 FROM games WHERE status = 'Pending' AND id = ?", gameId).Scan()
 	if err != nil {
 		// Caller should check for sql.ErrNoRows too
 		if err == sql.ErrNoRows {
@@ -84,7 +99,7 @@ func StartGame(gameId string, ctx context.Context) error {
 		return err
 	}
 
-	_, err = db.ExecContext(ctx, "UPDATE games SET Status = 'Active' WHERE GameID = ?", gameId)
+	_, err = db.ExecContext(ctx, "UPDATE games SET status = 'Active' WHERE id = ?", gameId)
 	if err != nil {
 		return err
 	}
