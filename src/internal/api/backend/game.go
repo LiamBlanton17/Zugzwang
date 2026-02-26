@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"slices"
 	"zugzwang/internal/engine"
-	"zugzwang/internal/platform"
+	"zugzwang/internal/platform/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -27,7 +27,7 @@ func HandleGame(c *gin.Context) {
 	gameId := c.Param("game_id")
 
 	// Validate te game is pending in the database and start it
-	err := platform.StartGame(gameId, ctx)
+	err := database.StartGame(gameId, ctx)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("Game ID does not exist")

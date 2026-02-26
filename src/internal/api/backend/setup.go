@@ -3,7 +3,7 @@ package backend
 import (
 	"fmt"
 	"net/http"
-	"zugzwang/internal/platform"
+	"zugzwang/internal/platform/database"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,7 +36,7 @@ func HandleSetup(c *gin.Context) {
 
 	// Create a new game
 	// TODO: There are legitmate reasons why a game my fail other than a server error (like too many current games running)
-	gameId, err := platform.CreateGame(setup.Name, setup.Elo, ctx)
+	gameId, err := database.CreateGame(setup.Name, setup.Elo, ctx)
 	if err != nil {
 		fmt.Println("Failed to create a new game.")
 

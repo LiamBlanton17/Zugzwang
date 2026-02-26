@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"zugzwang/internal/api/backend"
 	"zugzwang/internal/api/frontend"
-	"zugzwang/internal/platform"
+	"zugzwang/internal/platform/database"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,7 +13,7 @@ func main() {
 	fmt.Println("Starting application.")
 
 	// Setup the DB
-	err := platform.InitDB()
+	err := database.InitDB()
 	if err != nil {
 		fmt.Println(err)
 		return
