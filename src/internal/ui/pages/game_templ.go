@@ -29,7 +29,7 @@ func Game() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"m-0 p-0 w-100 vh-100 container-fluid\"><div class=\"row\"><section class=\"col-12 col-md-9\"><div id=\"chess-board\"></div></section><section class=\"col-12 col-md-3 d-flex flex-col\"><div id=\"game-moves\"></div><div id=\"user-info\"></div></section></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"m-0 p-0 w-100 vh-100 container-fluid\"><div class=\"m-0 p-1 w-100 vh-100 row\"><section class=\"mr-1 ml-0 my-0 p-0 col-12 col-md-9 d-flex flex-column\"><div id=\"chess-board\" class=\"card bg flex-grow-1\"></div></section><section class=\"m-0 p-0 col-12 col-md-3 d-flex flex-column\"><div id=\"game-moves\" class=\"mb-1 card bg flex-grow-1\"></div><div id=\"user-info\" class=\"card bg text d-flex flex-column flex-bias-25\"><div class=\"d-flex flex-column\"><span>Name</span> <span id=\"user-info-name\"></span></div><div class=\"d-flex flex-column\"><span>Elo</span> <span id=\"user-info-elo\"></span></div></div></section></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
