@@ -65,6 +65,15 @@ class Game {
     }
 
     _draw() {
+        const columns = this.board.map(function(piece) {
+            return `${this.piece.draw()}`;
+        }, this);
+
+        const rows = [];
+        for (const col in columns) {
+            
+        }
+
         this.el.html(`<table class="chess-board-tbl">
             <tbody>
                 <tr>
