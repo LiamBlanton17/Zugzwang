@@ -8,6 +8,7 @@ This file contains all the code related to searching
 // Here certain setup steps can take place, like multi-threading, if needed outside the main recursion
 // It also handles validating search safety, so a depth of like 100 isn't run on the engine
 // It returns the move and evals for all the root moves, up to the caller to determine if it should sort and slice or not
+// Multithread isn't actually implemented yet
 type RootSearchResult struct {
 	Nodes int
 	Moves []MoveEval
