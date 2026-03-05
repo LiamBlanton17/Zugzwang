@@ -14,7 +14,7 @@ This file contains functionality related to setup, searching and evalution of a 
 // Take a FEN string and turn it into a board, ready for the engine to search over it
 // [BUG] FEN logic does not handle castling rights correct, as KQ is valid, but will result in no rights
 // [BUG] Should allow KQ, but for now just put in KQ-- and it works
-func (position FEN) toBoard(history []FEN) (*Board, error) {
+func (position FEN) ToBoard(history []FEN) (*Board, error) {
 	board := Board{}
 
 	// The starting FEN position is: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
@@ -223,7 +223,7 @@ func (b *Board) getEnemyPieces() BitBoard {
 
 func (b *Board) buildGameHistory(history []FEN) error {
 	for _, h := range history {
-		b, err := h.toBoard(nil)
+		b, err := h.ToBoard(nil)
 		if err != nil {
 			return err
 		}
@@ -246,7 +246,7 @@ func (b *Board) search(numberOfMoves int) BoardSearchResults {
 // This function generates all legal moves in a position
 // DO NOT USE THIS IN THE SEARCH OR ENGINE HOTPATH
 // This should only be used for giving the frontend the legal moves in a position
-func (b *Board) generateLegalMoves() []Move {
+func (b *Board) GenerateLegalMoves() []Move {
 	moves := make([]Move, MAX_NUMBER_OF_MOVES_IN_A_POSITION)
 	legalMoves := make([]Move, MAX_NUMBER_OF_MOVES_IN_A_POSITION)
 	numberOfMoves := b.generatePseudoLegalMoves(moves)
@@ -447,6 +447,12 @@ func (b *Board) unMakeMove(unmove MoveUndo) {
 
 	// Update either color occupancy
 	b.Occupancy[EITHER_COLOR] = (b.Occupancy[WHITE] | b.Occupancy[BLACK])
+}
+
+// This is the external make move function, used by the backend api to handle game state
+// Assumes the move is legal
+func (b *Board) Move(move Move) {
+	b.makeMove(move)
 }
 
 // This function makes a move, in-place, on a board, and returns if that move was legal or not

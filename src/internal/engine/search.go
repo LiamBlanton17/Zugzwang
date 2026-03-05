@@ -8,12 +8,13 @@ This file contains all the code related to searching
 // Here certain setup steps can take place, like multi-threading, if needed outside the main recursion
 // It also handles validating search safety, so a depth of like 100 isn't run on the engine
 // It returns the move and evals for all the root moves, up to the caller to determine if it should sort and slice or not
+// Multithread isn't actually implemented yet
 type RootSearchResult struct {
-	nodes int
-	moves []MoveEval
+	Nodes int
+	Moves []MoveEval
 }
 
-func (b *Board) rootSearch(depth uint8, multithread bool) RootSearchResult {
+func (b *Board) RootSearch(depth uint8, multithread bool) RootSearchResult {
 
 	// Validate depth is reasonable
 	if depth == 0 {
@@ -72,10 +73,10 @@ func (b *Board) rootSearch(depth uint8, multithread bool) RootSearchResult {
 		legalMovesFound = true
 		result := b.abnegamax(ply+1, depth-1, -beta, -alpha, moveStack, &killers, &cutoffHistory)
 		b.unMakeMove(unmake)
-		resultEval := -result.best.eval
+		resultEval := -result.best.Eval
 		results = append(results, MoveEval{
-			eval: resultEval,
-			move: move,
+			Eval: resultEval,
+			Move: move,
 		})
 		nodes += result.nodes
 		if resultEval > bestEval {
@@ -95,8 +96,8 @@ func (b *Board) rootSearch(depth uint8, multithread bool) RootSearchResult {
 	}
 
 	return RootSearchResult{
-		nodes: nodes,
-		moves: results,
+		Nodes: nodes,
+		Moves: results,
 	}
 }
 
@@ -115,8 +116,8 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 		return SearchResult{
 			nodes: 1,
 			best: MoveEval{
-				move: Move{},
-				eval: Eval(0),
+				Move: Move{},
+				Eval: Eval(0),
 			},
 		}
 	}
@@ -145,8 +146,8 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 			return SearchResult{
 				nodes: 1,
 				best: MoveEval{
-					move: ttEntry.move,
-					eval: ttEntry.eval,
+					Move: ttEntry.move,
+					Eval: ttEntry.eval,
 				},
 			}
 		case TT_LOWER:
@@ -154,8 +155,8 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 				return SearchResult{
 					nodes: 1,
 					best: MoveEval{
-						move: ttEntry.move,
-						eval: ttEntry.eval,
+						Move: ttEntry.move,
+						Eval: ttEntry.eval,
 					},
 				}
 			}
@@ -166,8 +167,8 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 				return SearchResult{
 					nodes: 1,
 					best: MoveEval{
-						move: ttEntry.move,
-						eval: ttEntry.eval,
+						Move: ttEntry.move,
+						Eval: ttEntry.eval,
 					},
 				}
 			}
@@ -179,8 +180,8 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 			return SearchResult{
 				nodes: 1,
 				best: MoveEval{
-					move: ttEntry.move,
-					eval: ttEntry.eval,
+					Move: ttEntry.move,
+					Eval: ttEntry.eval,
 				},
 			}
 		}
@@ -232,7 +233,7 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 		// Search the new position and get the results
 		legalMovesFound = true
 		result := b.abnegamax(ply+1, depth-1-reduction, -betaSearch, -alpha, moveStack, killers, cutoffHistory)
-		resultEval := -result.best.eval
+		resultEval := -result.best.Eval
 		nodes += result.nodes
 
 		// If the engine reduced and the engine exceeded alpha, the engine needs to research at a full depth
@@ -297,8 +298,8 @@ func (b *Board) abnegamax(ply uint8, depth uint8, alpha, beta Eval, moveStack []
 	return SearchResult{
 		nodes: nodes,
 		best: MoveEval{
-			move: bestMove,
-			eval: bestEval,
+			Move: bestMove,
+			Eval: bestEval,
 		},
 	}
 }
@@ -319,7 +320,7 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 	if bestEval >= beta {
 		return SearchResult{
 			nodes: 1,
-			best:  MoveEval{eval: bestEval},
+			best:  MoveEval{Eval: bestEval},
 		}
 	}
 
@@ -336,8 +337,8 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 		return SearchResult{
 			nodes: 1,
 			best: MoveEval{
-				move: bestMove,
-				eval: bestEval,
+				Move: bestMove,
+				Eval: bestEval,
 			},
 		}
 	}
@@ -367,7 +368,7 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 		// Search the new position and get the results
 		result := b.quiescence(ply+1, -beta, -alpha, moveStack)
 		b.unMakeMove(unmake)
-		resultEval := -result.best.eval
+		resultEval := -result.best.Eval
 		nodes += result.nodes
 		if resultEval > bestEval {
 			bestEval = resultEval
@@ -386,8 +387,8 @@ func (b *Board) quiescence(ply uint8, alpha, beta Eval, moveStack [][]Move) Sear
 	return SearchResult{
 		nodes: nodes,
 		best: MoveEval{
-			move: bestMove,
-			eval: bestEval,
+			Move: bestMove,
+			Eval: bestEval,
 		},
 	}
 }

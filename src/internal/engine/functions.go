@@ -348,6 +348,11 @@ func (b *Board) SanToPCN(san string) (string, error) {
 	return startStr + finalTargetStr + promoSuffix, nil
 }
 
+// Get the byte slice of the move
+func (m *Move) ToBytes() []byte {
+	return []byte{byte(m.start), byte(m.target), byte(m.promotion), m.code}
+}
+
 // Get the move ordering score of the Move -- for move ordering
 func (m *Move) orderScore(board *Board, ttEntry *TTEntry, killers *[2]Move, twoPlyKillers *[2]Move, cutoffHistory *CutoffHeuristic) int {
 

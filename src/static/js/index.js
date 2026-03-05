@@ -22,10 +22,10 @@ $(() => {
 
         // Require ELO to be between 100 and 3200
         if (!elo) {
-            alert('Please enter your elo (or just an estimate)')
+            alert('Please enter your elo (or just an estimate, absolute newbie is about 400-500)')
             return;
         }
-        if (elo < 100 || elo > 3200) {
+        if (elo < 100 || elo > 3000) {
             alert('Your elo must be between 100 and 3000 (you\'re not that good)')
             return;
         }
@@ -33,7 +33,6 @@ $(() => {
         // Save ELO and name to local storage
         localStorage.setItem('name', name);
         localStorage.setItem('elo', elo);
-
         
         // Make a request to the backend to setup the game
         let gameId;
@@ -59,6 +58,10 @@ $(() => {
                 throw new Error('Response did not provide a game id');
             }
 
+            // Save game id to local storage
+            localStorage.setItem('gameId', gameId);
+            console.log(`Game ID: ${gameId}`);
+
         } catch (e) {
             alert('Something went wrong starting the game. Please try again.');
             console.log(e);
@@ -70,6 +73,26 @@ $(() => {
 
     // Function to start the game via a websocket
     async function startGameWS(gameId) {
+
+        // Redirect to the game page
+        const url = `/game/${gameId}`;
+        await htmx.ajax('GET', url, {
+            target: '#root',
+            swap: 'innerHTML',
+            push: url,
+        });
+
+        // Set user info in the display section
+        $('#user-info-name')?.text(localStorage.getItem('name') || 'Unknown Player');
+        $('#user-info-elo')?.text(localStorage.getItem('elo') || 'Unknown ELO');
+
+        try {
+            const game = new Game(gameId, '#chess-board');
+        } catch (e) {
+            alert('Something went wrong starting the game. Please try again.');
+            console.error(e);
+            return;
+        }
 
         // not implemented yet
         return;

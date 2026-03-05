@@ -66,7 +66,7 @@ func Perft() {
 		}
 
 		// Setup board from test position
-		board, err := test.position.toBoard(nil)
+		board, err := test.position.ToBoard(nil)
 		if err != nil {
 			fmt.Println(err)
 			return

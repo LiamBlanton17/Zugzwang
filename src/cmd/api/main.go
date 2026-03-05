@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"zugzwang/internal/api/backend"
 	"zugzwang/internal/api/frontend"
-	"zugzwang/internal/platform"
+	"zugzwang/internal/platform/database"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	fmt.Println("Starting backend API.")
+	fmt.Println("Starting application.")
 
 	// Setup the DB
-	err := platform.InitDB()
+	err := database.InitDB()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -42,6 +42,14 @@ func main() {
 	 * returns: HTML for the learn more
 	 */
 	r.GET("/learn-more", frontend.HandleLearnMore)
+
+	/*
+	 * route: "/game/{game_id}"
+	 * method: "GET"
+	 * description: the game page frontend endpoint
+	 * returns: HTML for the game UI
+	 */
+	r.GET("/game/:game_id", frontend.HandleGame)
 
 	/*
 	 *	route: "/setup"

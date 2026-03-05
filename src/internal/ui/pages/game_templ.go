@@ -8,7 +8,7 @@ package pages
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Index() templ.Component {
+func Game() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +29,7 @@ func Index() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"m-0 p-0 w-100 vh-100 d-flex flex-column align-items-center justify-content-center\"><h1>Welcome to <strong>ZugZwang</strong>!</h1><h6 class=\"mt-3\">A custom built chess engine written with Go and Templ.</h6><div class=\"d-flex flex-column w-100 mt-5 align-items-center justify-content-center\"><p>Please enter your name and estimated ELO.</p><div class=\"d-flex flex-column mt-3 w-25\"><label for=\"name\">Name</label> <input class=\"mt-1 w-100\" id=\"name\"></div><div class=\"d-flex flex-column mt-3 w-25\"><label for=\"elo\">Elo</label> <input class=\"mt-1 w-100\" id=\"elo\" type=\"number\"></div></div><div class=\"d-flex flex-row align-items-center justify-content-center gap-2 mt-4\"><button class=\"btn-primary\" id=\"start-game\">Start Game</button> <button class=\"btn-secondary\" hx-get=\"/learn-more\" hx-target=\"#root\" hx-push-url=\"true\">Learn More</button></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"m-0 p-0 w-100 vh-100 container-fluid\"><div class=\"m-0 p-1 w-100 vh-100 row\"><section class=\"mr-1 ml-0 my-0 p-0 col-12 col-md-9 d-flex flex-column\"><div id=\"chess-board\" class=\"card bg flex-grow-1\"></div></section><section class=\"m-0 p-0 col-12 col-md-3 d-flex flex-column\"><div id=\"game-moves\" class=\"mb-1 card bg flex-grow-1\"></div><div id=\"user-info\" class=\"card bg text d-flex flex-column flex-bias-25\"><div class=\"d-flex flex-column\"><span>Name</span> <span id=\"user-info-name\"></span></div><div class=\"d-flex flex-column\"><span>Elo</span> <span id=\"user-info-elo\"></span></div></div></section></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
