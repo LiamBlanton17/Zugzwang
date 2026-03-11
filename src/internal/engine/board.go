@@ -239,10 +239,6 @@ type BoardSearchResults struct {
 	MoveEvals []MoveEval
 }
 
-func (b *Board) search(numberOfMoves int) BoardSearchResults {
-	return BoardSearchResults{}
-}
-
 // This function generates all legal moves in a position
 // DO NOT USE THIS IN THE SEARCH OR ENGINE HOTPATH
 // This should only be used for giving the frontend the legal moves in a position
