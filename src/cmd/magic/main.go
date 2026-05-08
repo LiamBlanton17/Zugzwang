@@ -1,7 +1,7 @@
 package main
 
 import (
-	"zugzwang/internal/engine"
+	"zugzwang/engine"
 
 	"fmt"
 	"math/bits"

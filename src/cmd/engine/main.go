@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"zugzwang/internal/engine"
+	"zugzwang/engine"
 )
 
 /*
