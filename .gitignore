@@ -1,2 +1,3 @@
 backend/cmd/engine/cpu.prof
 /src/sqlite/sqlite.db
+src/cpu.prof

@@ -111,8 +111,8 @@ func (b *Board) pstEval(phaseSocre int) Eval {
 }
 
 // This function will take the phase score and two evals and return the interpolated score
-func interpolatePhase(phaseScore int, opneing, endgame Eval) Eval {
-	return Eval(((int(opneing) * (256 - phaseScore)) + (int(endgame) * phaseScore)) / 256)
+func interpolatePhase(phaseScore int, opening, endgame Eval) Eval {
+	return Eval(((int(opening) * (256 - phaseScore)) + (int(endgame) * phaseScore)) / 256)
 }
 
 // Function to get the evalution based on the pawn structure of the board
@@ -222,7 +222,7 @@ func (b *Board) kingSafetyEval(phaseScore int) Eval {
 	// Get phase scores
 	friendlyPawnScore := interpolatePhase(phaseScore, 17, 0)
 	enemyPawnScore := interpolatePhase(phaseScore, 13, 0)
-	friendlyPieceScore := interpolatePhase(phaseScore, 7, 0)
+	friendlyPieceScore := interpolatePhase(phaseScore, 5, 0)
 	enemyPieceScore := interpolatePhase(phaseScore, 13, 0)
 
 	// Do white king safety

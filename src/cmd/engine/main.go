@@ -1,9 +1,10 @@
 package main
 
 import (
+	"zugzwang/engine"
+
 	"flag"
 	"fmt"
-	"zugzwang/engine"
 )
 
 /*
