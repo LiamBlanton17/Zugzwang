@@ -14,6 +14,17 @@ func (b *Board) Moves() []Move {
 	return b.GenerateLegalMoves()
 }
 
+// This function is called by the HTTP api
+func GetBestMoves(pgn string, numMoves int) []string {
+
+	// Parse the PGN string into a board
+
+	// Search the board
+
+	// Return the best move(s) as a string
+	return []string{"e2e4", "d2d4"}
+}
+
 /*
 InitEngine should be called once at startup.
 This setups globals like TT tables, Zobrist keys, and pregenerated moves
